@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { property } from "@/lib/mock-data";
+import type { Property } from "@/types";
 
-export function SiteHeader() {
+export function SiteHeader({ property }: { property: Property }) {
   return (
     <header className="site-header">
       <Link className="brand" href="/">
@@ -10,10 +10,10 @@ export function SiteHeader() {
       </Link>
       <nav>
         <Link href="/acomodacoes">Acomodações</Link>
-        <a href="#experiencias">Experiências</a>
-        <a href="#localizacao">Localização</a>
+        <a href="/#experiencias">Experiências</a>
+        <a href="/#localizacao">Localização</a>
       </nav>
-      <a className="button button-primary" href="#reserva">Consultar disponibilidade</a>
+      <a className="button button-primary" href="/#reserva">Consultar disponibilidade</a>
     </header>
   );
 }
