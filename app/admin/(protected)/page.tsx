@@ -2,15 +2,11 @@ import Link from "next/link";
 import { LeadPriorityBadge } from "@/components/admin/LeadPriorityBadge";
 import { StatCard } from "@/components/admin/StatCard";
 import { getAdminContext } from "@/lib/data/admin";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
   const { supabase, membership } = await getAdminContext();
-  const auth = await createClient();
-  const { data: claimsData } = await auth.auth.getClaims();
-  const email = String(claimsData?.claims?.email ?? "Usuário");
 
   const [{ data: queue }, { data: accommodations }] = await Promise.all([
     supabase
@@ -32,6 +28,11 @@ export default async function AdminHome() {
   const urgent = workQueue.filter((lead) =>
     ["urgente", "alta"].includes(lead.priority_level ?? "")
   );
+  const overdue = workQueue.filter((lead) =>
+    (lead.priority_reasons ?? []).some((reason) =>
+      ["Follow-up vencido", "Contato agendado vencido"].includes(reason)
+    )
+  );
   const reactivation = all.filter(
     (lead) => lead.queue_type === "reativar" && !lead.do_not_contact
   );
@@ -46,8 +47,28 @@ export default async function AdminHome() {
           <span className="eyebrow">Visão geral</span>
           <h1>O que precisa da sua atenção hoje.</h1>
         </div>
-        <div className="admin-user">{email} · Proprietário</div>
+        <div className="admin-user">
+          {membership.display_name || membership.email || "Usuário"} · Proprietário
+        </div>
       </header>
+
+      {overdue.length > 0 && (
+        <section className="commercial-alert">
+          <div>
+            <span className="eyebrow">Atenção comercial</span>
+            <strong>
+              {overdue.length} contato(s) já passaram do horário planejado.
+            </strong>
+            <p>
+              Follow-ups e retornos combinados vencidos sobem automaticamente
+              na fila de prioridade.
+            </p>
+          </div>
+          <Link className="button button-primary" href="/admin/leads?view=atender">
+            Abrir fila
+          </Link>
+        </section>
+      )}
 
       <div className="stats-grid">
         <StatCard
