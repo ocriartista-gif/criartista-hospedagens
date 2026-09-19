@@ -197,16 +197,21 @@ export type Database = {
           check_out: string | null
           children: number
           created_at: string
+          do_not_contact: boolean
           email: string | null
           id: string
           last_contact: string | null
+          lost_reason: string | null
           medium: string | null
           name: string
           next_follow_up: string | null
           nights: number | null
           notes: string | null
+          priority_override: number | null
           property_id: string
           quoted_value: number | null
+          scheduled_contact_at: string | null
+          scheduled_contact_note: string | null
           source: string | null
           status: string
           whatsapp: string
@@ -220,16 +225,21 @@ export type Database = {
           check_out?: string | null
           children?: number
           created_at?: string
+          do_not_contact?: boolean
           email?: string | null
           id?: string
           last_contact?: string | null
+          lost_reason?: string | null
           medium?: string | null
           name: string
           next_follow_up?: string | null
           nights?: number | null
           notes?: string | null
+          priority_override?: number | null
           property_id: string
           quoted_value?: number | null
+          scheduled_contact_at?: string | null
+          scheduled_contact_note?: string | null
           source?: string | null
           status?: string
           whatsapp: string
@@ -243,16 +253,21 @@ export type Database = {
           check_out?: string | null
           children?: number
           created_at?: string
+          do_not_contact?: boolean
           email?: string | null
           id?: string
           last_contact?: string | null
+          lost_reason?: string | null
           medium?: string | null
           name?: string
           next_follow_up?: string | null
           nights?: number | null
           notes?: string | null
+          priority_override?: number | null
           property_id?: string
           quoted_value?: number | null
+          scheduled_contact_at?: string | null
+          scheduled_contact_note?: string | null
           source?: string | null
           status?: string
           whatsapp?: string
@@ -494,7 +509,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      lead_priority_queue: {
+        Row: {
+          accommodation_id: string | null
+          adults: number | null
+          assigned_to: string | null
+          campaign: string | null
+          check_in: string | null
+          check_out: string | null
+          children: number | null
+          created_at: string | null
+          do_not_contact: boolean | null
+          email: string | null
+          id: string | null
+          last_contact: string | null
+          lost_reason: string | null
+          medium: string | null
+          name: string | null
+          next_follow_up: string | null
+          next_seasonal_date: string | null
+          nights: number | null
+          notes: string | null
+          priority_level: string | null
+          priority_override: number | null
+          priority_reasons: string[] | null
+          priority_score: number | null
+          property_id: string | null
+          queue_type: string | null
+          quoted_value: number | null
+          scheduled_contact_at: string | null
+          scheduled_contact_note: string | null
+          source: string | null
+          status: string | null
+          whatsapp: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_accommodation_id_fkey"
+            columns: ["accommodation_id"]
+            isOneToOne: false
+            referencedRelation: "accommodations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
