@@ -24,7 +24,7 @@ export default function AcceptInvitePage() {
     const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
     if (hash.get("error_code") === "otp_expired") {
       setMessage(
-        "O link anterior foi consumido ou expirou. Use um novo código de 6 dígitos para ativar o acesso."
+        "O link anterior foi consumido ou expirou. Use um novo código de acesso para ativar a conta."
       );
     }
 
@@ -81,8 +81,8 @@ export default function AcceptInvitePage() {
       return;
     }
 
-    if (!hasSession && !/^\d{6}$/.test(code)) {
-      setMessage("Digite o código de 6 dígitos recebido por e-mail.");
+    if (!hasSession && !/^\d{6,10}$/.test(code)) {
+      setMessage("Digite o código numérico recebido por e-mail.");
       return;
     }
 
@@ -171,15 +171,15 @@ export default function AcceptInvitePage() {
                   </label>
 
                   <label>
-                    Código de 6 dígitos
+                    Código de acesso
                     <input
                       name="code"
                       inputMode="numeric"
-                      pattern="[0-9]{6}"
-                      maxLength={6}
+                      pattern="[0-9]{6,10}"
+                      maxLength={10}
                       required
                       autoComplete="one-time-code"
-                      placeholder="000000"
+                      placeholder="00000000"
                     />
                   </label>
 
