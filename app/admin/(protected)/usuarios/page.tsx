@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import {
   invitePropertyMember,
+  resendAccessCode,
   removePropertyMember,
   updatePropertyMemberRole,
 } from "./actions";
@@ -102,12 +103,27 @@ export default async function UsersPage({
                   </form>
 
                   {member.user_id !== membership.user_id ? (
-                    <form action={removePropertyMember}>
-                      <input type="hidden" name="userId" value={member.user_id} />
-                      <button className="button button-danger" type="submit">
-                        Remover acesso
-                      </button>
-                    </form>
+                    <>
+                      <form action={resendAccessCode}>
+                        <input type="hidden" name="email" value={member.email ?? ""} />
+                        <input
+                          type="hidden"
+                          name="displayName"
+                          value={member.display_name ?? ""}
+                        />
+                        <input type="hidden" name="role" value={member.role} />
+                        <button className="button button-secondary" type="submit">
+                          Reenviar código
+                        </button>
+                      </form>
+
+                      <form action={removePropertyMember}>
+                        <input type="hidden" name="userId" value={member.user_id} />
+                        <button className="button button-danger" type="submit">
+                          Remover acesso
+                        </button>
+                      </form>
+                    </>
                   ) : (
                     <span className="current-user-label">Seu usuário</span>
                   )}
@@ -121,8 +137,8 @@ export default async function UsersPage({
           <span className="eyebrow">Novo acesso</span>
           <h2>Convidar usuário</h2>
           <p>
-            O convidado receberá um e-mail para ativar o acesso e definir a
-            senha.
+            O convidado receberá um código de 6 dígitos para ativar o acesso
+            e definir a senha.
           </p>
 
           <form action={invitePropertyMember} className="invite-form">
@@ -153,7 +169,7 @@ export default async function UsersPage({
             </label>
 
             <button className="button button-primary" type="submit">
-              Enviar convite
+              Enviar código de acesso
             </button>
           </form>
 
