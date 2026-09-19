@@ -187,6 +187,64 @@ export type Database = {
           },
         ]
       }
+      lead_activities: {
+        Row: {
+          activity_type: string
+          actor_user_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          lead_id: string
+          metadata: Json
+          property_id: string
+          title: string
+        }
+        Insert: {
+          activity_type: string
+          actor_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id: string
+          metadata?: Json
+          property_id: string
+          title: string
+        }
+        Update: {
+          activity_type?: string
+          actor_user_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          lead_id?: string
+          metadata?: Json
+          property_id?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "lead_priority_queue"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_activities_lead_id_fkey"
+            columns: ["lead_id"]
+            isOneToOne: false
+            referencedRelation: "leads"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lead_activities_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       leads: {
         Row: {
           accommodation_id: string | null
@@ -337,18 +395,24 @@ export type Database = {
       property_members: {
         Row: {
           created_at: string
+          display_name: string | null
+          email: string | null
           property_id: string
           role: string
           user_id: string
         }
         Insert: {
           created_at?: string
+          display_name?: string | null
+          email?: string | null
           property_id: string
           role: string
           user_id: string
         }
         Update: {
           created_at?: string
+          display_name?: string | null
+          email?: string | null
           property_id?: string
           role?: string
           user_id?: string
