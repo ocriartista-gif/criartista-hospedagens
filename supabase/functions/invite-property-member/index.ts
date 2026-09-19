@@ -8,8 +8,6 @@ const allowedRoles = new Set([
   "technical_admin",
 ]);
 
-const appUrl = "https://criartista-hospedagens.vercel.app";
-
 function json(data: unknown, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
@@ -112,27 +110,28 @@ Deno.serve(async (req: Request) => {
     (candidate) => candidate.email?.toLowerCase() === email
   );
 
-  let invitationSent = false;
+  let created = false;
 
   if (!targetUser) {
-    const { data: inviteData, error: inviteError } =
-      await adminClient.auth.admin.inviteUserByEmail(email, {
-        redirectTo: `${appUrl}/admin/accept-invite`,
-        data: {
+    const { data: createdData, error: createError } =
+      await adminClient.auth.admin.createUser({
+        email,
+        email_confirm: true,
+        user_metadata: {
           display_name: displayName || email.split("@")[0],
           invited_property_id: propertyId,
         },
       });
 
-    if (inviteError || !inviteData.user) {
+    if (createError || !createdData.user) {
       return json(
-        { error: inviteError?.message ?? "Could not invite user." },
+        { error: createError?.message ?? "Could not create user." },
         400
       );
     }
 
-    targetUser = inviteData.user;
-    invitationSent = true;
+    targetUser = createdData.user;
+    created = true;
   }
 
   const { error: upsertError } = await adminClient
@@ -157,9 +156,30 @@ Deno.serve(async (req: Request) => {
     return json({ error: upsertError.message }, 500);
   }
 
+  const mailClient = createClient(supabaseUrl, publishableKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+
+  const { error: otpError } = await mailClient.auth.signInWithOtp({
+    email,
+    options: { shouldCreateUser: false },
+  });
+
+  if (otpError) {
+    return json(
+      {
+        error:
+          "O acesso foi criado, mas o código não pôde ser enviado: " +
+          otpError.message,
+      },
+      400
+    );
+  }
+
   return json({
     ok: true,
-    invitationSent,
+    created,
+    codeSent: true,
     userId: targetUser.id,
     email,
     role,
