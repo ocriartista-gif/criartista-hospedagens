@@ -1,14 +1,88 @@
 "use client";
 
-import { FormEvent, useState } from "react";
-import { accommodations } from "@/lib/mock-data";
+import { FormEvent, useMemo, useState } from "react";
+import type { Accommodation } from "@/types";
+import { createClient } from "@/lib/supabase/client";
 
-export function BookingArea({ accommodationId }: { accommodationId?: string }) {
-  const [sent, setSent] = useState(false);
+type BookingAreaProps = {
+  propertyId: string;
+  propertyWhatsapp: string;
+  accommodations: Accommodation[];
+  accommodationId?: string;
+};
 
-  function submit(event: FormEvent<HTMLFormElement>) {
+export function BookingArea({
+  propertyId,
+  propertyWhatsapp,
+  accommodations,
+  accommodationId,
+}: BookingAreaProps) {
+  const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
+  const [error, setError] = useState("");
+  const [summary, setSummary] = useState("");
+
+  const whatsappHref = useMemo(() => {
+    const text = encodeURIComponent(
+      summary
+        ? `Olá! Vim pelo site e acabei de enviar uma consulta: ${summary}`
+        : "Olá! Vim pelo site e gostaria de consultar uma estadia."
+    );
+    return `https://wa.me/${propertyWhatsapp}?text=${text}`;
+  }, [propertyWhatsapp, summary]);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    setSent(true);
+    setError("");
+    setState("sending");
+
+    const form = new FormData(event.currentTarget);
+    const checkIn = String(form.get("checkIn") ?? "");
+    const checkOut = String(form.get("checkOut") ?? "");
+    const adults = Number(form.get("adults") ?? 2);
+    const children = Number(form.get("children") ?? 0);
+    const accommodation = String(form.get("accommodation") ?? "");
+    const name = String(form.get("name") ?? "").trim();
+    const whatsapp = String(form.get("whatsapp") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
+
+    const start = new Date(`${checkIn}T12:00:00`);
+    const end = new Date(`${checkOut}T12:00:00`);
+    const nights = Math.max(
+      1,
+      Math.round((end.getTime() - start.getTime()) / 86_400_000)
+    );
+
+    const params = new URLSearchParams(window.location.search);
+    const supabase = createClient();
+
+    const { error: insertError } = await supabase.from("leads").insert({
+      property_id: propertyId,
+      name,
+      whatsapp,
+      email: email || null,
+      check_in: checkIn,
+      check_out: checkOut,
+      nights,
+      adults,
+      children,
+      accommodation_id: accommodation || null,
+      source: params.get("utm_source") ?? "site",
+      medium: params.get("utm_medium"),
+      campaign: params.get("utm_campaign"),
+      status: "novo",
+    });
+
+    if (insertError) {
+      console.error(insertError);
+      setError("Não foi possível registrar sua consulta agora. Tente novamente.");
+      setState("idle");
+      return;
+    }
+
+    setSummary(
+      `${checkIn} a ${checkOut} · ${adults} adulto(s) · ${children} criança(s)`
+    );
+    setState("sent");
   }
 
   return (
@@ -17,20 +91,75 @@ export function BookingArea({ accommodationId }: { accommodationId?: string }) {
         <span className="eyebrow">Reserve sem intermediários</span>
         <h2>Consulte as melhores datas para você.</h2>
       </div>
-      {sent ? (
+
+      {state === "sent" ? (
         <div className="success-box">
           <strong>Solicitação registrada.</strong>
-          <span>Na próxima etapa, este formulário gravará o lead no Supabase e poderá espelhar no Google Sheets.</span>
+          <span>
+            Seus dados já entraram no atendimento da hospedagem. Se quiser,
+            continue a conversa agora pelo WhatsApp.
+          </span>
+          {propertyWhatsapp && (
+            <a className="button button-primary" href={whatsappHref} target="_blank" rel="noreferrer">
+              Falar agora pelo WhatsApp
+            </a>
+          )}
         </div>
       ) : (
         <form className="booking-form" onSubmit={submit}>
-          <label>Check-in<input required type="date" name="checkIn" /></label>
-          <label>Check-out<input required type="date" name="checkOut" /></label>
-          <label>Hóspedes<select name="guests" defaultValue="2"><option value="1">1 hóspede</option><option value="2">2 hóspedes</option><option value="3">3 hóspedes</option><option value="4">4 hóspedes</option><option value="5">5 hóspedes</option><option value="6">6 hóspedes</option></select></label>
-          <label>Acomodação<select name="accommodation" defaultValue={accommodationId ?? ""}><option value="">Qualquer opção</option>{accommodations.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-          <label>Nome<input required name="name" placeholder="Seu nome" /></label>
-          <label>WhatsApp<input required name="whatsapp" placeholder="(19) 99999-9999" /></label>
-          <button className="button button-primary" type="submit">Consultar</button>
+          <label>
+            Check-in
+            <input required type="date" name="checkIn" />
+          </label>
+          <label>
+            Check-out
+            <input required type="date" name="checkOut" />
+          </label>
+          <label>
+            Adultos
+            <select name="adults" defaultValue="2">
+              {[1, 2, 3, 4, 5, 6].map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Crianças
+            <select name="children" defaultValue="0">
+              {[0, 1, 2, 3, 4].map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Acomodação
+            <select name="accommodation" defaultValue={accommodationId ?? ""}>
+              <option value="">Qualquer opção</option>
+              {accommodations.map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Nome
+            <input required name="name" placeholder="Seu nome" />
+          </label>
+          <label>
+            WhatsApp
+            <input required name="whatsapp" placeholder="(19) 99999-9999" />
+          </label>
+          <label>
+            E-mail
+            <input type="email" name="email" placeholder="voce@email.com" />
+          </label>
+          <button
+            className="button button-primary"
+            type="submit"
+            disabled={state === "sending"}
+          >
+            {state === "sending" ? "Enviando..." : "Consultar"}
+          </button>
+          {error && <p className="form-error">{error}</p>}
         </form>
       )}
     </section>
