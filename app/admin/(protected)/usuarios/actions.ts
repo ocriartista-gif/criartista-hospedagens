@@ -22,16 +22,16 @@ function adminOnly(role: string) {
   }
 }
 
-export async function invitePropertyMember(formData: FormData) {
+async function sendAccessCode(
+  email: string,
+  displayName: string,
+  role: string
+) {
   const { supabase, membership } = await getAdminContext();
   adminOnly(membership.role);
 
-  const email = text(formData, "email").toLowerCase();
-  const displayName = text(formData, "displayName");
-  const role = text(formData, "role");
-
   if (!email || !allowedRoles.has(role)) {
-    redirect("/admin/usuarios?error=Dados%20do%20convite%20inv%C3%A1lidos.");
+    redirect("/admin/usuarios?error=Dados%20do%20acesso%20inv%C3%A1lidos.");
   }
 
   const { data, error } = await supabase.functions.invoke(
@@ -59,12 +59,30 @@ export async function invitePropertyMember(formData: FormData) {
   }
 
   revalidatePath("/admin/usuarios");
+}
 
-  const message = data?.invitationSent
-    ? "Convite enviado por e-mail."
-    : "Usuário já existia e recebeu acesso à hospedagem.";
+export async function invitePropertyMember(formData: FormData) {
+  const email = text(formData, "email").toLowerCase();
+  const displayName = text(formData, "displayName");
+  const role = text(formData, "role");
 
-  redirect(`/admin/usuarios?success=${encodeURIComponent(message)}`);
+  await sendAccessCode(email, displayName, role);
+
+  redirect(
+    "/admin/usuarios?success=C%C3%B3digo%20de%20ativa%C3%A7%C3%A3o%20enviado%20por%20e-mail."
+  );
+}
+
+export async function resendAccessCode(formData: FormData) {
+  const email = text(formData, "email").toLowerCase();
+  const displayName = text(formData, "displayName");
+  const role = text(formData, "role");
+
+  await sendAccessCode(email, displayName, role);
+
+  redirect(
+    "/admin/usuarios?success=Novo%20c%C3%B3digo%20de%20acesso%20enviado."
+  );
 }
 
 export async function updatePropertyMemberRole(formData: FormData) {
