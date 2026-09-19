@@ -4,69 +4,87 @@ import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AcceptInvitePage() {
-  const [state, setState] = useState<
-    "checking" | "ready" | "saving" | "error" | "done"
-  >("checking");
+  const [checking, setChecking] = useState(true);
+  const [hasSession, setHasSession] = useState(false);
+  const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [done, setDone] = useState(false);
 
   useEffect(() => {
     const supabase = createClient();
-    let active = true;
+    const params = new URLSearchParams(window.location.search);
+    const emailFromUrl = params.get("email");
 
-    const check = async () => {
+    if (emailFromUrl) {
+      setEmail(emailFromUrl);
+    }
+
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+    if (hash.get("error_code") === "otp_expired") {
+      setMessage(
+        "O link anterior foi consumido ou expirou. Use um novo código de 6 dígitos para ativar o acesso."
+      );
+    }
+
+    const checkSession = async () => {
       const {
         data: { session },
       } = await supabase.auth.getSession();
 
-      if (!active) return;
-
-      if (session) {
-        setState("ready");
-        return;
-      }
-
-      const {
-        data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, nextSession) => {
-        if (nextSession && active) {
-          setState("ready");
-        }
-      });
-
-      window.setTimeout(async () => {
-        const {
-          data: { session: delayedSession },
-        } = await supabase.auth.getSession();
-
-        if (!active) return;
-
-        if (delayedSession) {
-          setState("ready");
-        } else {
-          setMessage(
-            "O convite é inválido, expirou ou ainda não foi processado. Peça um novo convite ao administrador."
-          );
-          setState("error");
-        }
-      }, 1800);
-
-      return () => subscription.unsubscribe();
+      setHasSession(Boolean(session));
+      setChecking(false);
     };
 
-    check();
-
-    return () => {
-      active = false;
-    };
+    checkSession();
   }, []);
 
-  async function setPassword(event: FormEvent<HTMLFormElement>) {
+  async function resendCode() {
+    if (!email.trim()) {
+      setMessage("Informe o e-mail do usuário para receber um novo código.");
+      return;
+    }
+
+    setSending(true);
+    setMessage("");
+
+    const supabase = createClient();
+    const { error } = await supabase.auth.signInWithOtp({
+      email: email.trim().toLowerCase(),
+      options: {
+        shouldCreateUser: false,
+      },
+    });
+
+    setSending(false);
+
+    if (error) {
+      setMessage(error.message);
+      return;
+    }
+
+    setMessage("Novo código enviado. Consulte a caixa de entrada e o spam.");
+  }
+
+  async function activate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setMessage("");
 
     const form = new FormData(event.currentTarget);
+    const code = String(form.get("code") ?? "").trim();
     const password = String(form.get("password") ?? "");
     const confirmPassword = String(form.get("confirmPassword") ?? "");
+
+    if (!hasSession && !email.trim()) {
+      setMessage("Informe o e-mail que recebeu o convite.");
+      return;
+    }
+
+    if (!hasSession && !/^\d{6}$/.test(code)) {
+      setMessage("Digite o código de 6 dígitos recebido por e-mail.");
+      return;
+    }
 
     if (password.length < 8) {
       setMessage("Use uma senha com pelo menos 8 caracteres.");
@@ -78,18 +96,36 @@ export default function AcceptInvitePage() {
       return;
     }
 
-    setState("saving");
+    setSaving(true);
     const supabase = createClient();
 
-    const { error } = await supabase.auth.updateUser({ password });
+    if (!hasSession) {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        email: email.trim().toLowerCase(),
+        token: code,
+        type: "email",
+      });
 
-    if (error) {
-      setMessage(error.message);
-      setState("ready");
+      if (verifyError) {
+        setMessage("Código inválido ou expirado. Solicite um novo código.");
+        setSaving(false);
+        return;
+      }
+    }
+
+    const { error: passwordError } = await supabase.auth.updateUser({
+      password,
+    });
+
+    if (passwordError) {
+      setMessage(passwordError.message);
+      setSaving(false);
       return;
     }
 
-    setState("done");
+    setDone(true);
+    setSaving(false);
+
     window.setTimeout(() => {
       window.location.href = "/admin";
     }, 500);
@@ -100,32 +136,64 @@ export default function AcceptInvitePage() {
       <section className="login-card">
         <span className="eyebrow">Criartista Hospedagens</span>
 
-        {state === "checking" && (
+        {checking ? (
           <>
-            <h1>Validando convite</h1>
-            <p>Estamos preparando seu acesso.</p>
+            <h1>Preparando acesso</h1>
+            <p>Verificando sua sessão.</p>
           </>
-        )}
-
-        {state === "error" && (
+        ) : done ? (
           <>
-            <h1>Não foi possível ativar</h1>
-            <p>{message}</p>
-            <a className="button button-secondary" href="/admin/login">
-              Ir para o login
-            </a>
+            <h1>Acesso ativado</h1>
+            <p>Entrando no painel...</p>
           </>
-        )}
-
-        {["ready", "saving"].includes(state) && (
+        ) : (
           <>
-            <h1>Defina sua senha</h1>
+            <h1>Ativar acesso</h1>
             <p>
-              Seu acesso foi reconhecido. Crie a senha que você usará no
-              painel administrativo.
+              {hasSession
+                ? "Seu e-mail já foi confirmado. Defina sua senha para concluir."
+                : "Digite o e-mail, o código recebido e escolha sua senha."}
             </p>
 
-            <form className="login-form" onSubmit={setPassword}>
+            <form className="login-form" onSubmit={activate}>
+              {!hasSession && (
+                <>
+                  <label>
+                    E-mail
+                    <input
+                      name="email"
+                      type="email"
+                      value={email}
+                      onChange={(event) => setEmail(event.target.value)}
+                      required
+                      autoComplete="email"
+                    />
+                  </label>
+
+                  <label>
+                    Código de 6 dígitos
+                    <input
+                      name="code"
+                      inputMode="numeric"
+                      pattern="[0-9]{6}"
+                      maxLength={6}
+                      required
+                      autoComplete="one-time-code"
+                      placeholder="000000"
+                    />
+                  </label>
+
+                  <button
+                    className="button button-secondary"
+                    type="button"
+                    onClick={resendCode}
+                    disabled={sending}
+                  >
+                    {sending ? "Enviando..." : "Reenviar código"}
+                  </button>
+                </>
+              )}
+
               <label>
                 Nova senha
                 <input
@@ -153,18 +221,15 @@ export default function AcceptInvitePage() {
               <button
                 className="button button-primary"
                 type="submit"
-                disabled={state === "saving"}
+                disabled={saving}
               >
-                {state === "saving" ? "Salvando..." : "Ativar acesso"}
+                {saving ? "Ativando..." : "Ativar acesso"}
               </button>
             </form>
-          </>
-        )}
 
-        {state === "done" && (
-          <>
-            <h1>Acesso ativado</h1>
-            <p>Entrando no painel...</p>
+            <a className="text-link" href="/admin/login">
+              Já tenho senha · Ir para o login
+            </a>
           </>
         )}
       </section>
