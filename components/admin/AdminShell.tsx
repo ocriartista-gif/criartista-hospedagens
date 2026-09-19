@@ -17,21 +17,7 @@ const items = [
 ];
 
 export async function AdminShell({ children }: { children: React.ReactNode }) {
-  const { property } = await getAdminContext();
-
-  const theme = {
-    primary: property.id ? "#183B2A" : "#183B2A",
-    secondary: "#8CA67C",
-    accent: "#C97863",
-    background: "#F6F2EA",
-    text: "#302C2F",
-    headingFont: "Georgia",
-    eyebrowFont: "Arial",
-    bodyFont: "Arial",
-    eyebrowTransform: "uppercase" as const,
-    eyebrowWeight: "600" as const,
-    eyebrowSpacing: "wide" as const,
-  };
+  const { property, theme } = await getAdminContext();
 
   return (
     <div className="admin-shell" style={themeStyle(theme)}>
