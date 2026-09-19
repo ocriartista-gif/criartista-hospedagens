@@ -1,3 +1,5 @@
+import Link from "next/link";
+import { LeadPriorityBadge } from "@/components/admin/LeadPriorityBadge";
 import { StatCard } from "@/components/admin/StatCard";
 import { getAdminContext } from "@/lib/data/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -10,26 +12,32 @@ export default async function AdminHome() {
   const { data: claimsData } = await auth.auth.getClaims();
   const email = String(claimsData?.claims?.email ?? "Usuário");
 
-  const [{ data: leads }, { data: accommodations }] = await Promise.all([
+  const [{ data: queue }, { data: accommodations }] = await Promise.all([
     supabase
-      .from("leads")
+      .from("lead_priority_queue")
       .select("*")
       .eq("property_id", membership.property_id)
-      .order("created_at", { ascending: false })
-      .limit(8),
+      .order("priority_score", { ascending: false })
+      .order("created_at", { ascending: true }),
     supabase
       .from("accommodations")
       .select("id,published")
       .eq("property_id", membership.property_id),
   ]);
 
-  const allLeads = leads ?? [];
-  const newLeads = allLeads.filter((lead) => lead.status === "novo").length;
-  const inService = allLeads.filter((lead) =>
-    ["contatado", "cotacao_enviada", "follow_up"].includes(lead.status)
+  const all = (queue ?? []).filter((lead) => Boolean(lead.id));
+  const workQueue = all.filter(
+    (lead) => lead.queue_type === "atender" && !lead.do_not_contact
+  );
+  const urgent = workQueue.filter((lead) =>
+    ["urgente", "alta"].includes(lead.priority_level ?? "")
+  );
+  const reactivation = all.filter(
+    (lead) => lead.queue_type === "reativar" && !lead.do_not_contact
+  );
+  const publishedRooms = (accommodations ?? []).filter(
+    (item) => item.published
   ).length;
-  const reserved = allLeads.filter((lead) => lead.status === "reservado").length;
-  const publishedRooms = (accommodations ?? []).filter((item) => item.published).length;
 
   return (
     <>
@@ -42,37 +50,72 @@ export default async function AdminHome() {
       </header>
 
       <div className="stats-grid">
-        <StatCard label="Novos leads" value={newLeads} note="aguardando contato" />
-        <StatCard label="Em atendimento" value={inService} />
-        <StatCard label="Acomodações" value={publishedRooms} note="publicadas" />
-        <StatCard label="Reservados" value={reserved} />
+        <StatCard
+          label="Para atender"
+          value={workQueue.length}
+          note="fila comercial"
+        />
+        <StatCard
+          label="Alta prioridade"
+          value={urgent.length}
+          note="atacar primeiro"
+        />
+        <StatCard
+          label="Reativar"
+          value={reactivation.length}
+          note="oportunidades sazonais"
+        />
+        <StatCard
+          label="Acomodações"
+          value={publishedRooms}
+          note="publicadas"
+        />
       </div>
 
       <section className="admin-panel">
         <div className="panel-heading">
-          <h2>Leads recentes</h2>
-          <a href="/admin/leads">Ver todos →</a>
+          <div>
+            <span className="eyebrow">Fila comercial</span>
+            <h2>Próximos contatos</h2>
+          </div>
+          <Link href="/admin/leads">Abrir CRM →</Link>
         </div>
 
-        {allLeads.length ? (
-          <table>
+        {workQueue.length ? (
+          <table className="crm-table">
             <thead>
               <tr>
-                <th>Nome</th>
-                <th>Período</th>
-                <th>Origem</th>
+                <th>Prioridade</th>
+                <th>Lead</th>
+                <th>Por quê</th>
                 <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              {allLeads.map((lead) => (
+              {workQueue.slice(0, 6).map((lead) => (
                 <tr key={lead.id}>
-                  <td>{lead.name}</td>
-                  <td>{lead.check_in ?? "—"} → {lead.check_out ?? "—"}</td>
-                  <td>{lead.source ?? "site"}</td>
                   <td>
-                    <span className={`badge badge-${lead.status}`}>
-                      {lead.status.replaceAll("_", " ")}
+                    <LeadPriorityBadge
+                      level={lead.priority_level}
+                      score={lead.priority_score}
+                    />
+                  </td>
+                  <td>
+                    <Link
+                      className="lead-name-link"
+                      href={`/admin/leads/${lead.id}`}
+                    >
+                      {lead.name}
+                    </Link>
+                    <small>{lead.whatsapp}</small>
+                  </td>
+                  <td className="crm-reason">
+                    {(lead.priority_reasons ?? []).slice(0, 2).join(" · ") ||
+                      "Definir próximo passo"}
+                  </td>
+                  <td>
+                    <span className={`badge badge-${lead.status ?? "novo"}`}>
+                      {(lead.status ?? "novo").replaceAll("_", " ")}
                     </span>
                   </td>
                 </tr>
@@ -80,7 +123,13 @@ export default async function AdminHome() {
             </tbody>
           </table>
         ) : (
-          <p>Ainda não há leads registrados. Quando alguém enviar uma consulta pelo site, ela aparecerá aqui.</p>
+          <div className="commercial-clear">
+            <strong>Fila comercial zerada.</strong>
+            <span>
+              Nenhum lead ativo exige contato agora. O sistema continuará
+              acompanhando follow-ups e datas futuras.
+            </span>
+          </div>
         )}
       </section>
     </>
