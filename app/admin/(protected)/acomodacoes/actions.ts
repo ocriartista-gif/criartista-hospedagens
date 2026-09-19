@@ -64,7 +64,7 @@ export async function createAccommodation(formData: FormData) {
   const name = text(formData, "name");
   const slug = slugify(text(formData, "slug") || name);
   const amenities = text(formData, "amenities")
-    .split("\n")
+    .split(/[\n,;]+/)
     .map((item) => item.trim())
     .filter(Boolean);
 
@@ -104,7 +104,7 @@ export async function updateAccommodation(formData: FormData) {
   const name = text(formData, "name");
   const slug = slugify(text(formData, "slug") || name);
   const amenities = text(formData, "amenities")
-    .split("\n")
+    .split(/[\n,;]+/)
     .map((item) => item.trim())
     .filter(Boolean);
 
