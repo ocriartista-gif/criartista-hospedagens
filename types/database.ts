@@ -301,6 +301,7 @@ export type Database = {
           slug: string
           status: string
           tagline: string | null
+          timezone: string
           whatsapp: string | null
         }
         Insert: {
@@ -314,6 +315,7 @@ export type Database = {
           slug: string
           status?: string
           tagline?: string | null
+          timezone?: string
           whatsapp?: string | null
         }
         Update: {
@@ -327,6 +329,7 @@ export type Database = {
           slug?: string
           status?: string
           tagline?: string | null
+          timezone?: string
           whatsapp?: string | null
         }
         Relationships: []
@@ -523,6 +526,7 @@ export type Database = {
           email: string | null
           id: string | null
           last_contact: string | null
+          local_today: string | null
           lost_reason: string | null
           medium: string | null
           name: string | null
@@ -535,6 +539,7 @@ export type Database = {
           priority_reasons: string[] | null
           priority_score: number | null
           property_id: string | null
+          property_timezone: string | null
           queue_type: string | null
           quoted_value: number | null
           scheduled_contact_at: string | null
