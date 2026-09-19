@@ -18,9 +18,17 @@ const fallbackTheme: PropertyTheme = {
 export async function getAdminContext() {
   const supabase = await createClient();
 
+  const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
+  const userId = claimsData?.claims?.sub;
+
+  if (claimsError || !userId) {
+    throw new Error("Admin session not found.");
+  }
+
   const { data: membership, error: membershipError } = await supabase
     .from("property_members")
     .select("property_id, user_id, role, display_name, email")
+    .eq("user_id", userId)
     .limit(1)
     .single();
 
