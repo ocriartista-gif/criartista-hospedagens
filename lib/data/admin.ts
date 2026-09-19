@@ -20,7 +20,7 @@ export async function getAdminContext() {
 
   const { data: membership, error: membershipError } = await supabase
     .from("property_members")
-    .select("property_id, role")
+    .select("property_id, user_id, role, display_name, email")
     .limit(1)
     .single();
 
