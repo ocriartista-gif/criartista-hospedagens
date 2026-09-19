@@ -58,6 +58,7 @@ function memberLabel(
 
 const activityLabels: Record<string, string> = {
   lead_created: "Entrada",
+  timeline_started: "Sistema",
   status_change: "Status",
   quote: "Cotação",
   contact: "Contato",
