@@ -63,3 +63,55 @@ O vendedor deve abrir o painel e responder três perguntas sem fazer triagem man
 3. Qual é o próximo passo depois desse contato?
 
 A ordem sugerida ajuda o comercial, mas não substitui julgamento humano. O campo de prioridade manual permite representar contexto que o sistema não conhece.
+
+
+## Histórico comercial imutável
+
+Cada lead possui uma timeline em `lead_activities`. O histórico não é reescrito quando o estado atual do lead muda.
+
+Eventos automáticos atuais:
+- lead recebido;
+- mudança de status;
+- cotação atualizada;
+- contato registrado;
+- follow-up agendado/removido;
+- contato marcado com hóspede;
+- troca de responsável;
+- atualização das observações comerciais;
+- motivo da perda;
+- bloqueio/liberação de contato;
+- prioridade manual.
+
+Notas independentes também podem ser adicionadas diretamente à timeline.
+
+A tabela possui RLS próprio e não concede UPDATE/DELETE aos usuários comuns, preservando o histórico operacional.
+
+## Responsável pelo lead
+
+`leads.assigned_to` referencia um usuário Auth que também precisa pertencer à mesma propriedade.
+
+Na criação da primeira versão da timeline, leads ativos sem responsável recebem automaticamente o primeiro membro comercial disponível, priorizando:
+1. reservas;
+2. gerente;
+3. proprietário;
+4. administrador técnico.
+
+O vendedor pode alterar o responsável na ficha do lead. Toda troca entra na timeline.
+
+## Filtros operacionais
+
+A central do CRM oferece recortes de trabalho sem alterar a prioridade calculada:
+- Atender agora;
+- Urgentes;
+- Follow-up hoje + vencidos;
+- Cotação enviada;
+- Meus leads;
+- Sem responsável;
+- Reativar;
+- Todos.
+
+O objetivo é permitir que um vendedor trabalhe sua própria carteira e que gerente/proprietário enxerguem a operação completa.
+
+## Alerta na home
+
+Quando há follow-up ou contato marcado vencido, a Visão Geral exibe um alerta comercial antes dos indicadores. A prioridade continua sendo recalculada pelo banco em tempo real.
