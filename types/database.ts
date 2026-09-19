@@ -397,6 +397,8 @@ export type Database = {
           created_at: string
           display_name: string | null
           email: string | null
+          invited_at: string | null
+          invited_by: string | null
           property_id: string
           role: string
           user_id: string
@@ -405,6 +407,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          invited_at?: string | null
+          invited_by?: string | null
           property_id: string
           role: string
           user_id: string
@@ -413,6 +417,8 @@ export type Database = {
           created_at?: string
           display_name?: string | null
           email?: string | null
+          invited_at?: string | null
+          invited_by?: string | null
           property_id?: string
           role?: string
           user_id?: string
