@@ -4,8 +4,7 @@ import { FormEvent, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 export default function AcceptInvitePage() {
-  const [checking, setChecking] = useState(true);
-  const [hasSession, setHasSession] = useState(false);
+  const [ready, setReady] = useState(false);
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
   const [saving, setSaving] = useState(false);
@@ -28,16 +27,14 @@ export default function AcceptInvitePage() {
       );
     }
 
-    const checkSession = async () => {
-      const {
-        data: { session },
-      } = await supabase.auth.getSession();
-
-      setHasSession(Boolean(session));
-      setChecking(false);
+    const prepareInviteSession = async () => {
+      // A ativação sempre começa sem sessão para impedir que a senha ou o
+      // perfil de outro usuário já logado sejam reutilizados por engano.
+      await supabase.auth.signOut();
+      setReady(true);
     };
 
-    checkSession();
+    prepareInviteSession();
   }, []);
 
   async function resendCode() {
@@ -76,12 +73,12 @@ export default function AcceptInvitePage() {
     const password = String(form.get("password") ?? "");
     const confirmPassword = String(form.get("confirmPassword") ?? "");
 
-    if (!hasSession && !email.trim()) {
+    if (!email.trim()) {
       setMessage("Informe o e-mail que recebeu o convite.");
       return;
     }
 
-    if (!hasSession && !/^\d{6,10}$/.test(code)) {
+    if (!/^\d{6,10}$/.test(code)) {
       setMessage("Digite o código numérico recebido por e-mail.");
       return;
     }
@@ -99,18 +96,26 @@ export default function AcceptInvitePage() {
     setSaving(true);
     const supabase = createClient();
 
-    if (!hasSession) {
-      const { error: verifyError } = await supabase.auth.verifyOtp({
-        email: email.trim().toLowerCase(),
-        token: code,
-        type: "email",
-      });
+    // Garante que o usuário autenticado seja exatamente o dono do código.
+    await supabase.auth.signOut();
 
-      if (verifyError) {
-        setMessage("Código inválido ou expirado. Solicite um novo código.");
-        setSaving(false);
-        return;
-      }
+    const { data: verifyData, error: verifyError } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: code,
+      type: "email",
+    });
+
+    if (verifyError || !verifyData.user) {
+      setMessage("Código inválido ou expirado. Solicite um novo código.");
+      setSaving(false);
+      return;
+    }
+
+    if (verifyData.user.email?.toLowerCase() !== email.trim().toLowerCase()) {
+      await supabase.auth.signOut();
+      setMessage("O código não corresponde ao e-mail informado.");
+      setSaving(false);
+      return;
     }
 
     const { error: passwordError } = await supabase.auth.updateUser({
@@ -136,10 +141,10 @@ export default function AcceptInvitePage() {
       <section className="login-card">
         <span className="eyebrow">Criartista Hospedagens</span>
 
-        {checking ? (
+        {!ready ? (
           <>
             <h1>Preparando acesso</h1>
-            <p>Verificando sua sessão.</p>
+            <p>Encerrando outras sessões antes de ativar o novo usuário.</p>
           </>
         ) : done ? (
           <>
@@ -149,50 +154,42 @@ export default function AcceptInvitePage() {
         ) : (
           <>
             <h1>Ativar acesso</h1>
-            <p>
-              {hasSession
-                ? "Seu e-mail já foi confirmado. Defina sua senha para concluir."
-                : "Digite o e-mail, o código recebido e escolha sua senha."}
-            </p>
+            <p>Digite o e-mail, o código recebido e escolha sua senha.</p>
 
             <form className="login-form" onSubmit={activate}>
-              {!hasSession && (
-                <>
-                  <label>
-                    E-mail
-                    <input
-                      name="email"
-                      type="email"
-                      value={email}
-                      onChange={(event) => setEmail(event.target.value)}
-                      required
-                      autoComplete="email"
-                    />
-                  </label>
+              <label>
+                E-mail
+                <input
+                  name="email"
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  required
+                  autoComplete="email"
+                />
+              </label>
 
-                  <label>
-                    Código de acesso
-                    <input
-                      name="code"
-                      inputMode="numeric"
-                      pattern="[0-9]{6,10}"
-                      maxLength={10}
-                      required
-                      autoComplete="one-time-code"
-                      placeholder="00000000"
-                    />
-                  </label>
+              <label>
+                Código de acesso
+                <input
+                  name="code"
+                  inputMode="numeric"
+                  pattern="[0-9]{6,10}"
+                  maxLength={10}
+                  required
+                  autoComplete="one-time-code"
+                  placeholder="00000000"
+                />
+              </label>
 
-                  <button
-                    className="button button-secondary"
-                    type="button"
-                    onClick={resendCode}
-                    disabled={sending}
-                  >
-                    {sending ? "Enviando..." : "Reenviar código"}
-                  </button>
-                </>
-              )}
+              <button
+                className="button button-secondary"
+                type="button"
+                onClick={resendCode}
+                disabled={sending}
+              >
+                {sending ? "Enviando..." : "Reenviar código"}
+              </button>
 
               <label>
                 Nova senha
