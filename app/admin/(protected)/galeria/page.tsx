@@ -17,6 +17,7 @@ export default async function GalleryPage() {
     { data: images, error },
     { data: accommodations, error: accommodationsError },
     { data: sections, error: sectionsError },
+    { data: theme, error: themeError },
   ] = await Promise.all([
     supabase
       .from("gallery_images")
@@ -37,6 +38,7 @@ export default async function GalleryPage() {
   if (error) throw error;
   if (accommodationsError) throw accommodationsError;
   if (sectionsError) throw sectionsError;
+  if (themeError) throw themeError;
 
   const accommodationIds = (accommodations ?? []).map((item) => item.id);
 
@@ -60,6 +62,10 @@ export default async function GalleryPage() {
       if (path) inUsePaths.add(path);
     }
   }
+
+  if (theme?.logo_main_url) inUsePaths.add(theme.logo_main_url);
+  if (theme?.logo_light_url) inUsePaths.add(theme.logo_light_url);
+  if (theme?.favicon_url) inUsePaths.add(theme.favicon_url);
 
   return (
     <>
