@@ -152,6 +152,50 @@ export type Database = {
           },
         ]
       }
+      gallery_images: {
+        Row: {
+          alt_text: string | null
+          caption: string | null
+          category: string | null
+          created_at: string
+          id: string
+          property_id: string
+          published: boolean
+          sort_order: number
+          storage_path: string
+        }
+        Insert: {
+          alt_text?: string | null
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          property_id: string
+          published?: boolean
+          sort_order?: number
+          storage_path: string
+        }
+        Update: {
+          alt_text?: string | null
+          caption?: string | null
+          category?: string | null
+          created_at?: string
+          id?: string
+          property_id?: string
+          published?: boolean
+          sort_order?: number
+          storage_path?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gallery_images_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       integrations: {
         Row: {
           config: Json
