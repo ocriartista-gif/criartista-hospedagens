@@ -70,7 +70,14 @@ export default async function Home() {
     <main style={themeStyle(property.theme)}>
       <SiteHeader property={property} />
 
-      <section className="hero">
+      <section
+        className="hero"
+        style={
+          hero.image
+            ? { backgroundImage: `url("${hero.image}")` }
+            : undefined
+        }
+      >
         <div className="hero-overlay" />
         <div className="hero-content">
           <span className="eyebrow">{hero.eyebrow}</span>
