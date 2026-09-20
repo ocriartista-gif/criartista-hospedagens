@@ -22,6 +22,8 @@ const fallbackTheme: PropertyTheme = {
   eyebrowTransform: "uppercase",
   eyebrowWeight: "600",
   eyebrowSpacing: "wide",
+  headerSurfaceKey: "background",
+  postHeroSurfaceKey: "background",
 };
 
 export async function getAdminContext() {
@@ -76,6 +78,10 @@ export async function getAdminContext() {
         eyebrowTransform: themeRow.eyebrow_transform as PropertyTheme["eyebrowTransform"],
         eyebrowWeight: themeRow.eyebrow_weight as PropertyTheme["eyebrowWeight"],
         eyebrowSpacing: themeRow.eyebrow_spacing as PropertyTheme["eyebrowSpacing"],
+        headerSurfaceKey:
+          themeRow.header_surface_key as PropertyTheme["headerSurfaceKey"],
+        postHeroSurfaceKey:
+          themeRow.post_hero_surface_key as PropertyTheme["postHeroSurfaceKey"],
         logoMainUrl: assetUrl(themeRow.logo_main_url),
         logoLightUrl: assetUrl(themeRow.logo_light_url),
         faviconUrl: assetUrl(themeRow.favicon_url),
