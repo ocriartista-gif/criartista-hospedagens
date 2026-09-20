@@ -1,14 +1,25 @@
 import Link from "next/link";
+import { isDarkColor, resolvePaletteColor } from "@/lib/theme";
 import type { Property } from "@/types";
 
 export function SiteHeader({ property }: { property: Property }) {
+  const headerBackground = resolvePaletteColor(
+    property.theme,
+    property.theme.headerSurfaceKey
+  );
+  const darkSurface = isDarkColor(headerBackground);
+
+  const logoUrl = darkSurface
+    ? property.theme.logoLightUrl ?? undefined
+    : property.theme.logoMainUrl ?? property.theme.logoLightUrl;
+
   return (
     <header className="site-header">
       <Link className="brand" href="/">
-        {property.theme.logoMainUrl ? (
+        {logoUrl ? (
           <img
             className="site-brand-logo"
-            src={property.theme.logoMainUrl}
+            src={logoUrl}
             alt={property.name}
           />
         ) : (
