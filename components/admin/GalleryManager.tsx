@@ -51,7 +51,8 @@ export function GalleryManager({
     event.preventDefault();
     setMessage("");
 
-    const form = new FormData(event.currentTarget);
+    const formElement = event.currentTarget;
+    const form = new FormData(formElement);
     const files = form.getAll("files").filter((value): value is File => value instanceof File && value.size > 0);
 
     if (!files.length) {
@@ -118,7 +119,7 @@ export function GalleryManager({
           ? "Imagem adicionada à biblioteca."
           : `${created.length} imagens adicionadas à biblioteca.`
       );
-      event.currentTarget.reset();
+      formElement.reset();
       router.refresh();
     } catch (error) {
       setMessage(
