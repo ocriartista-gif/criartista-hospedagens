@@ -24,7 +24,7 @@ export const property: Property = {
     eyebrowWeight: "600",
     eyebrowSpacing: "wide",
     headerSurfaceKey: "background",
-    postHeroSurfaceKey: "background"
+    ctaSurfaceKey: "primary"
   }
 };
 
