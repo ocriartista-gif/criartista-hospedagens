@@ -11,13 +11,24 @@ export default async function BrandPage({
   const { saved } = await searchParams;
   const { supabase, membership, property } = await getAdminContext();
 
-  const { data: theme, error } = await supabase
-    .from("property_themes")
-    .select("*")
-    .eq("property_id", membership.property_id)
-    .single();
+  const [{ data: theme, error }, { data: library, error: libraryError }] =
+    await Promise.all([
+      supabase
+        .from("property_themes")
+        .select("*")
+        .eq("property_id", membership.property_id)
+        .single(),
+      supabase
+        .from("gallery_images")
+        .select("id, storage_path, alt_text, caption, category, sort_order")
+        .eq("property_id", membership.property_id)
+        .eq("published", true)
+        .order("sort_order")
+        .order("created_at", { ascending: false }),
+    ]);
 
   if (error) throw error;
+  if (libraryError) throw libraryError;
 
   return (
     <>
@@ -37,6 +48,8 @@ export default async function BrandPage({
 
       <BrandEditor
         propertyName={property.name}
+        propertyId={membership.property_id}
+        libraryImages={library ?? []}
         initial={{
           primary: theme.primary_color,
           secondary: theme.secondary_color,
@@ -49,9 +62,9 @@ export default async function BrandPage({
           eyebrowTransform: theme.eyebrow_transform,
           eyebrowWeight: theme.eyebrow_weight,
           eyebrowSpacing: theme.eyebrow_spacing,
-          logoMainUrl: theme.logo_main_url ?? "",
-          logoLightUrl: theme.logo_light_url ?? "",
-          faviconUrl: theme.favicon_url ?? "",
+          logoMainPath: theme.logo_main_url ?? "",
+          logoLightPath: theme.logo_light_url ?? "",
+          faviconPath: theme.favicon_url ?? "",
         }}
       />
     </>
