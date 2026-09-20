@@ -442,7 +442,10 @@ export type Database = {
           eyebrow_spacing: string
           eyebrow_transform: string
           eyebrow_weight: string
+          favicon_url: string | null
           heading_font: string
+          logo_light_url: string | null
+          logo_main_url: string | null
           primary_color: string
           property_id: string
           secondary_color: string
@@ -457,7 +460,10 @@ export type Database = {
           eyebrow_spacing?: string
           eyebrow_transform?: string
           eyebrow_weight?: string
+          favicon_url?: string | null
           heading_font?: string
+          logo_light_url?: string | null
+          logo_main_url?: string | null
           primary_color?: string
           property_id: string
           secondary_color?: string
@@ -472,7 +478,10 @@ export type Database = {
           eyebrow_spacing?: string
           eyebrow_transform?: string
           eyebrow_weight?: string
+          favicon_url?: string | null
           heading_font?: string
+          logo_light_url?: string | null
+          logo_main_url?: string | null
           primary_color?: string
           property_id?: string
           secondary_color?: string
