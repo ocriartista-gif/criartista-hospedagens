@@ -1,2 +1,37 @@
-import { accommodations } from "@/lib/mock-data";
-export default function GalleryPage(){const images=accommodations.flatMap((item)=>item.images.map((src)=>({src,name:item.name})));return <><header className="admin-header"><div><span className="eyebrow">Mídia</span><h1>Galeria</h1><p>Biblioteca visual da propriedade.</p></div><button className="button button-primary">+ Adicionar fotos</button></header><div className="gallery-admin">{images.map((image,index)=><figure key={`${image.src}-${index}`}><img src={image.src} alt=""/><figcaption>{image.name}</figcaption></figure>)}</div></>}
+import { GalleryManager } from "@/components/admin/GalleryManager";
+import { getAdminContext } from "@/lib/data/admin";
+
+export const dynamic = "force-dynamic";
+
+export default async function GalleryPage() {
+  const { supabase, membership } = await getAdminContext();
+
+  const { data: images, error } = await supabase
+    .from("gallery_images")
+    .select("*")
+    .eq("property_id", membership.property_id)
+    .order("sort_order")
+    .order("created_at");
+
+  if (error) throw error;
+
+  return (
+    <>
+      <header className="admin-header">
+        <div>
+          <span className="eyebrow">Mídia</span>
+          <h1>Galeria</h1>
+          <p>
+            Biblioteca visual da propriedade para fotos de ambiente, experiências,
+            acomodações e peças da marca.
+          </p>
+        </div>
+      </header>
+
+      <GalleryManager
+        propertyId={membership.property_id}
+        initialImages={images ?? []}
+      />
+    </>
+  );
+}
