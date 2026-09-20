@@ -405,3 +405,21 @@
   .media-library-inline{grid-template-columns:repeat(2,minmax(0,1fr));max-height:520px}
   .media-selected-strip{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+
+/* --- Mídia da identidade --- */
+.brand-media-pickers{display:grid;gap:20px}
+.brand-media-pickers .media-picker{padding:18px;border:1px solid var(--border);border-radius:14px;background:#faf9f6}
+.brand-assets-preview{display:grid;grid-template-columns:1fr 90px;gap:10px;margin-top:22px}
+.brand-dark-preview,.favicon-preview{border-radius:12px;padding:12px;display:grid;gap:8px;align-content:center}
+.brand-dark-preview{min-height:92px;background:var(--brand-primary);color:#fff}
+.brand-dark-preview img{max-width:150px;max-height:48px;object-fit:contain;object-position:left center}
+.brand-dark-preview span{font-size:.75rem;opacity:.72}
+.favicon-preview{background:#fff;border:1px solid var(--border);place-items:center;text-align:center}
+.favicon-preview img{width:36px;height:36px;object-fit:contain}
+.favicon-preview small,.brand-dark-preview small{font-size:.65rem;text-transform:uppercase;letter-spacing:.08em;opacity:.7}
+.gallery-library-image>span.in-use{color:#274f91;background:#e6eefc}
+.button:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:700px){
+  .brand-assets-preview{grid-template-columns:1fr}
+  .favicon-preview{place-items:start;text-align:left}
+}
