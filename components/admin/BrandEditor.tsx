@@ -1,12 +1,23 @@
 "use client";
 
 import { useMemo, useState, type CSSProperties } from "react";
-import { updateBrandIdentity } from "@/app/admin/(protected)/identidade/actions";
+import {
+  resetLastBrandIdentity,
+  updateBrandIdentity,
+} from "@/app/admin/(protected)/identidade/actions";
 import {
   MediaPicker,
   type MediaLibraryItem,
 } from "@/components/admin/MediaPicker";
 import { createClient } from "@/lib/supabase/client";
+import {
+  bestPaletteText,
+  getThemeContrastIssues,
+  PALETTE_KEYS,
+  PALETTE_LABELS,
+  resolvePaletteColor,
+} from "@/lib/theme";
+import type { PaletteKey } from "@/types";
 
 type BrandValues = {
   primary: string;
@@ -17,9 +28,11 @@ type BrandValues = {
   headingFont: string;
   eyebrowFont: string;
   bodyFont: string;
-  eyebrowTransform: string;
-  eyebrowWeight: string;
-  eyebrowSpacing: string;
+  eyebrowTransform: "uppercase" | "normal" | "capitalize";
+  eyebrowWeight: "400" | "500" | "600";
+  eyebrowSpacing: "normal" | "wide";
+  headerSurfaceKey: PaletteKey;
+  postHeroSurfaceKey: PaletteKey;
   logoMainPath: string;
   logoLightPath: string;
   faviconPath: string;
@@ -39,19 +52,93 @@ const headingFonts = [
 
 const uiFonts = ["Inter", "Manrope", "DM Sans", "Montserrat", "Sora", "Arial"];
 
+function SurfaceSelector({
+  title,
+  description,
+  name,
+  value,
+  values,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  name: string;
+  value: PaletteKey;
+  values: BrandValues;
+  onChange: (value: PaletteKey) => void;
+}) {
+  return (
+    <div className="surface-selector">
+      <div>
+        <strong>{title}</strong>
+        <p>{description}</p>
+      </div>
+
+      <div className="surface-options">
+        {PALETTE_KEYS.map((key) => {
+          const background = resolvePaletteColor(values, key);
+          const foreground = bestPaletteText(background, values);
+
+          return (
+            <label
+              className={`surface-option ${value === key ? "selected" : ""}`}
+              key={key}
+              style={
+                {
+                  "--surface-swatch": background,
+                  "--surface-swatch-text": foreground.color,
+                } as CSSProperties
+              }
+            >
+              <input
+                type="radio"
+                name={name}
+                value={key}
+                checked={value === key}
+                onChange={() => onChange(key)}
+              />
+              <span className="surface-swatch">Aa</span>
+              <small>{PALETTE_LABELS[key]}</small>
+            </label>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function BrandEditor({
   propertyName,
   propertyId,
   libraryImages,
+  canReset,
   initial,
 }: {
   propertyName: string;
   propertyId: string;
   libraryImages: MediaLibraryItem[];
+  canReset: boolean;
   initial: BrandValues;
 }) {
   const supabase = useMemo(() => createClient(), []);
   const [values, setValues] = useState(initial);
+
+  const contrastIssues = useMemo(
+    () => getThemeContrastIssues(values),
+    [values]
+  );
+
+  const headerBackground = resolvePaletteColor(
+    values,
+    values.headerSurfaceKey
+  );
+  const headerText = bestPaletteText(headerBackground, values).color;
+  const postHeroBackground = resolvePaletteColor(
+    values,
+    values.postHeroSurfaceKey
+  );
+  const postHeroText = bestPaletteText(postHeroBackground, values).color;
+  const onPrimary = bestPaletteText(values.primary, values).color;
 
   const previewStyle = useMemo(
     () =>
@@ -61,6 +148,11 @@ export function BrandEditor({
         "--brand-accent": values.accent,
         "--brand-background": values.background,
         "--brand-text": values.text,
+        "--brand-on-primary": onPrimary,
+        "--header-bg": headerBackground,
+        "--header-text": headerText,
+        "--post-hero-bg": postHeroBackground,
+        "--post-hero-text": postHeroText,
         "--heading-font": values.headingFont,
         "--eyebrow-font": values.eyebrowFont,
         "--body-font": values.bodyFont,
@@ -69,10 +161,17 @@ export function BrandEditor({
         "--eyebrow-spacing":
           values.eyebrowSpacing === "wide" ? "0.16em" : "0.05em",
       }) as CSSProperties,
-    [values]
+    [
+      values,
+      onPrimary,
+      headerBackground,
+      headerText,
+      postHeroBackground,
+      postHeroText,
+    ]
   );
 
-  function set(key: keyof BrandValues, value: string) {
+  function set<K extends keyof BrandValues>(key: K, value: BrandValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
   }
 
@@ -84,6 +183,25 @@ export function BrandEditor({
 
   return (
     <form action={updateBrandIdentity}>
+      <div className="brand-editor-toolbar">
+        <div>
+          <strong>Proteção de contraste ativa</strong>
+          <span>
+            O sistema só permite salvar combinações legíveis.
+          </span>
+        </div>
+
+        <button
+          className="button button-secondary"
+          type="submit"
+          formAction={resetLastBrandIdentity}
+          formNoValidate
+          disabled={!canReset}
+        >
+          ↶ Resetar última alteração
+        </button>
+      </div>
+
       <div className="settings-columns">
         <section className="admin-panel brand-editor-panel">
           <div className="brand-section">
@@ -102,7 +220,7 @@ export function BrandEditor({
                 initialSelected={values.logoMainPath ? [values.logoMainPath] : []}
                 max={1}
                 title="Logo principal"
-                description="Usada no cabeçalho claro do site."
+                description="Usada em superfícies claras."
                 uploadCategory="Marca"
                 libraryCategories={["Marca"]}
                 accept="image/png,image/webp,image/svg+xml,image/jpeg"
@@ -118,7 +236,7 @@ export function BrandEditor({
                 initialSelected={values.logoLightPath ? [values.logoLightPath] : []}
                 max={1}
                 title="Logo clara"
-                description="Usada sobre fundos escuros, especialmente no painel."
+                description="O sistema usa esta versão automaticamente em superfícies escuras."
                 uploadCategory="Marca"
                 libraryCategories={["Marca"]}
                 accept="image/png,image/webp,image/svg+xml,image/jpeg"
@@ -147,7 +265,11 @@ export function BrandEditor({
 
           <div className="brand-section">
             <span className="eyebrow">Paleta</span>
-            <h2>Cores</h2>
+            <h2>Cores da marca</h2>
+            <p className="section-note">
+              As superfícies do site usam estas mesmas cores. Não criamos cores
+              escondidas fora da paleta.
+            </p>
 
             <div className="color-grid">
               {[
@@ -162,17 +284,64 @@ export function BrandEditor({
                   <input
                     type="color"
                     name={key}
-                    value={values[key as keyof BrandValues]}
+                    value={values[key as keyof BrandValues] as string}
                     onChange={(event) =>
                       set(
-                        key as keyof BrandValues,
+                        key as
+                          | "primary"
+                          | "secondary"
+                          | "accent"
+                          | "background"
+                          | "text",
                         event.target.value.toUpperCase()
                       )
                     }
                   />
-                  <code>{values[key as keyof BrandValues]}</code>
+                  <code>{values[key as keyof BrandValues] as string}</code>
                 </label>
               ))}
+            </div>
+
+            {contrastIssues.length ? (
+              <div className="contrast-alert">
+                <strong>Essa combinação ainda não pode ser salva.</strong>
+                {contrastIssues.map((issue) => (
+                  <span key={issue}>{issue}</span>
+                ))}
+              </div>
+            ) : (
+              <div className="contrast-ok">
+                ✓ Paleta aprovada para leitura e CTAs.
+              </div>
+            )}
+          </div>
+
+          <div className="brand-section">
+            <span className="eyebrow">Aplicação da paleta</span>
+            <h2>Onde cada cor aparece</h2>
+            <p className="section-note">
+              Escolha apenas entre as cores da paleta. A cor do texto é definida
+              automaticamente pela regra de contraste.
+            </p>
+
+            <div className="surface-selector-stack">
+              <SurfaceSelector
+                title="Cabeçalho"
+                description="Barra de navegação no topo do site."
+                name="headerSurfaceKey"
+                value={values.headerSurfaceKey}
+                values={values}
+                onChange={(value) => set("headerSurfaceKey", value)}
+              />
+
+              <SurfaceSelector
+                title="Faixa após o Hero"
+                description="Área de apresentação que conduz o visitante até as acomodações."
+                name="postHeroSurfaceKey"
+                value={values.postHeroSurfaceKey}
+                values={values}
+                onChange={(value) => set("postHeroSurfaceKey", value)}
+              />
             </div>
           </div>
 
@@ -226,7 +395,10 @@ export function BrandEditor({
                   name="eyebrowTransform"
                   value={values.eyebrowTransform}
                   onChange={(event) =>
-                    set("eyebrowTransform", event.target.value)
+                    set(
+                      "eyebrowTransform",
+                      event.target.value as BrandValues["eyebrowTransform"]
+                    )
                   }
                 >
                   <option value="uppercase">CAIXA ALTA</option>
@@ -240,7 +412,12 @@ export function BrandEditor({
                 <select
                   name="eyebrowWeight"
                   value={values.eyebrowWeight}
-                  onChange={(event) => set("eyebrowWeight", event.target.value)}
+                  onChange={(event) =>
+                    set(
+                      "eyebrowWeight",
+                      event.target.value as BrandValues["eyebrowWeight"]
+                    )
+                  }
                 >
                   <option value="400">Regular</option>
                   <option value="500">Médio</option>
@@ -253,7 +430,12 @@ export function BrandEditor({
                 <select
                   name="eyebrowSpacing"
                   value={values.eyebrowSpacing}
-                  onChange={(event) => set("eyebrowSpacing", event.target.value)}
+                  onChange={(event) =>
+                    set(
+                      "eyebrowSpacing",
+                      event.target.value as BrandValues["eyebrowSpacing"]
+                    )
+                  }
                 >
                   <option value="wide">Amplo</option>
                   <option value="normal">Normal</option>
@@ -263,7 +445,11 @@ export function BrandEditor({
           </div>
 
           <div className="form-actions">
-            <button className="button button-primary" type="submit">
+            <button
+              className="button button-primary"
+              type="submit"
+              disabled={contrastIssues.length > 0}
+            >
               Salvar identidade
             </button>
           </div>
@@ -272,19 +458,26 @@ export function BrandEditor({
         <aside className="admin-panel brand-preview" style={previewStyle}>
           <span className="eyebrow">Pré-visualização</span>
 
-          <div className="brand-preview-logo">
-            {values.logoMainPath ? (
-              <img src={mediaUrl(values.logoMainPath)} alt={propertyName} />
-            ) : (
-              <strong>{propertyName}</strong>
-            )}
-          </div>
+          <div className="brand-mini-site">
+            <div className="brand-mini-header">
+              {values.logoMainPath ? (
+                <img src={mediaUrl(values.logoMainPath)} alt={propertyName} />
+              ) : (
+                <strong>{propertyName}</strong>
+              )}
+              <span>Menu</span>
+            </div>
 
-          <h2>Chalé Jardim</h2>
-          <p>Natureza e privacidade para momentos tranquilos.</p>
-          <button className="button button-primary" type="button">
-            Ver disponibilidade
-          </button>
+            <div className="brand-mini-hero">
+              <small>Hero / foto</small>
+            </div>
+
+            <div className="brand-mini-post-hero">
+              <span className="eyebrow">Acomodações</span>
+              <h3>Seu canto entre o verde.</h3>
+              <p>Uma prévia da aplicação real da paleta.</p>
+            </div>
+          </div>
 
           <div className="brand-assets-preview">
             <div className="brand-dark-preview">
@@ -316,10 +509,6 @@ export function BrandEditor({
             ].map((color) => (
               <span key={color} style={{ background: color }} title={color} />
             ))}
-          </div>
-
-          <div className="contrast-ok">
-            ✓ Estrutura e hierarquia de conversão permanecem protegidas
           </div>
         </aside>
       </div>
