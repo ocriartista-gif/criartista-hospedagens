@@ -477,6 +477,38 @@ export type Database = {
           },
         ]
       }
+      property_theme_history: {
+        Row: {
+          changed_by: string | null
+          created_at: string
+          id: string
+          property_id: string
+          snapshot: Json
+        }
+        Insert: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          property_id: string
+          snapshot: Json
+        }
+        Update: {
+          changed_by?: string | null
+          created_at?: string
+          id?: string
+          property_id?: string
+          snapshot?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "property_theme_history_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       property_themes: {
         Row: {
           accent_color: string
@@ -487,9 +519,11 @@ export type Database = {
           eyebrow_transform: string
           eyebrow_weight: string
           favicon_url: string | null
+          header_surface_key: string
           heading_font: string
           logo_light_url: string | null
           logo_main_url: string | null
+          post_hero_surface_key: string
           primary_color: string
           property_id: string
           secondary_color: string
@@ -505,9 +539,11 @@ export type Database = {
           eyebrow_transform?: string
           eyebrow_weight?: string
           favicon_url?: string | null
+          header_surface_key?: string
           heading_font?: string
           logo_light_url?: string | null
           logo_main_url?: string | null
+          post_hero_surface_key?: string
           primary_color?: string
           property_id: string
           secondary_color?: string
@@ -523,9 +559,11 @@ export type Database = {
           eyebrow_transform?: string
           eyebrow_weight?: string
           favicon_url?: string | null
+          header_surface_key?: string
           heading_font?: string
           logo_light_url?: string | null
           logo_main_url?: string | null
+          post_hero_surface_key?: string
           primary_color?: string
           property_id?: string
           secondary_color?: string
