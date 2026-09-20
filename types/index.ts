@@ -20,6 +20,9 @@ export type PropertyTheme = {
   eyebrowTransform: "uppercase" | "normal" | "capitalize";
   eyebrowWeight: "400" | "500" | "600";
   eyebrowSpacing: "normal" | "wide";
+  logoMainUrl?: string;
+  logoLightUrl?: string;
+  faviconUrl?: string;
 };
 
 export type Property = {
