@@ -31,7 +31,7 @@ const fallbackTheme: PropertyTheme = {
   eyebrowWeight: "600",
   eyebrowSpacing: "wide",
   headerSurfaceKey: "background",
-  postHeroSurfaceKey: "background",
+  ctaSurfaceKey: "primary",
 };
 
 export const DEFAULT_PROPERTY_SLUG =
@@ -53,8 +53,8 @@ function mapTheme(row: Tables<"property_themes"> | null): PropertyTheme {
     eyebrowSpacing: row.eyebrow_spacing as PropertyTheme["eyebrowSpacing"],
     headerSurfaceKey:
       row.header_surface_key as PropertyTheme["headerSurfaceKey"],
-    postHeroSurfaceKey:
-      row.post_hero_surface_key as PropertyTheme["postHeroSurfaceKey"],
+    ctaSurfaceKey:
+      row.cta_surface_key as PropertyTheme["ctaSurfaceKey"],
     logoMainUrl: row.logo_main_url ? imageUrl(row.logo_main_url) : undefined,
     logoLightUrl: row.logo_light_url ? imageUrl(row.logo_light_url) : undefined,
     faviconUrl: row.favicon_url ? imageUrl(row.favicon_url) : undefined,
