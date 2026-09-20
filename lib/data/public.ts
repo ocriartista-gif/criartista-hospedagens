@@ -9,6 +9,7 @@ export type PublicContent = Record<string, {
   eyebrow: string;
   title: string;
   description: string;
+  image?: string;
 }>;
 
 export type PublicSiteData = {
@@ -56,14 +57,26 @@ function mapTheme(row: Tables<"property_themes"> | null): PropertyTheme {
 
 function mapContent(rows: ContentRow[]): PublicContent {
   return Object.fromEntries(
-    rows.map((row) => [
-      row.section_key,
-      {
-        eyebrow: row.eyebrow ?? "",
-        title: row.title ?? "",
-        description: row.description ?? "",
-      },
-    ])
+    rows.map((row) => {
+      const extra =
+        row.extra && typeof row.extra === "object" && !Array.isArray(row.extra)
+          ? (row.extra as Record<string, unknown>)
+          : {};
+      const imagePath =
+        typeof extra.hero_image === "string" && extra.hero_image
+          ? extra.hero_image
+          : undefined;
+
+      return [
+        row.section_key,
+        {
+          eyebrow: row.eyebrow ?? "",
+          title: row.title ?? "",
+          description: row.description ?? "",
+          image: imagePath ? imageUrl(imagePath) : undefined,
+        },
+      ];
+    })
   );
 }
 
