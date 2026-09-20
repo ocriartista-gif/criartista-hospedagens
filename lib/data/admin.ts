@@ -67,6 +67,9 @@ export async function getAdminContext() {
         eyebrowTransform: themeRow.eyebrow_transform as PropertyTheme["eyebrowTransform"],
         eyebrowWeight: themeRow.eyebrow_weight as PropertyTheme["eyebrowWeight"],
         eyebrowSpacing: themeRow.eyebrow_spacing as PropertyTheme["eyebrowSpacing"],
+        logoMainUrl: themeRow.logo_main_url ?? undefined,
+        logoLightUrl: themeRow.logo_light_url ?? undefined,
+        faviconUrl: themeRow.favicon_url ?? undefined,
       }
     : fallbackTheme;
 
