@@ -303,3 +303,19 @@
   .sticky-save-bar{align-items:stretch;flex-direction:column}
   .review-card-heading{flex-direction:column}
 }
+
+/* --- Identidade white-label --- */
+.site-brand-logo{display:block;max-width:180px;max-height:52px;object-fit:contain}
+.admin-brand-logo{display:block;max-width:180px;max-height:52px;object-fit:contain;object-position:left center}
+.brand-editor-panel{display:grid;gap:30px}
+.brand-section{padding-bottom:28px;border-bottom:1px solid var(--border)}
+.brand-section:last-of-type{border-bottom:0;padding-bottom:0}
+.brand-section h2{font-size:1.8rem}
+.brand-preview{background:var(--brand-background);color:var(--brand-text);font-family:var(--body-font);border-top:5px solid var(--brand-primary)!important}
+.brand-preview h2{font-family:var(--heading-font)}
+.brand-preview .eyebrow{font-family:var(--eyebrow-font);text-transform:var(--eyebrow-transform);font-weight:var(--eyebrow-weight);letter-spacing:var(--eyebrow-spacing)}
+.brand-preview-logo{min-height:72px;display:flex;align-items:center;margin-bottom:26px}
+.brand-preview-logo img{max-width:210px;max-height:64px;object-fit:contain}
+.brand-preview-logo strong{font-family:var(--heading-font);font-size:1.65rem}
+.brand-swatches{display:flex;gap:8px;margin-top:26px}
+.brand-swatches span{width:30px;height:30px;border-radius:50%;border:1px solid rgba(0,0,0,.12)}
