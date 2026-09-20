@@ -2,6 +2,11 @@
 
 import { useMemo, useState, type CSSProperties } from "react";
 import { updateBrandIdentity } from "@/app/admin/(protected)/identidade/actions";
+import {
+  MediaPicker,
+  type MediaLibraryItem,
+} from "@/components/admin/MediaPicker";
+import { createClient } from "@/lib/supabase/client";
 
 type BrandValues = {
   primary: string;
@@ -15,9 +20,9 @@ type BrandValues = {
   eyebrowTransform: string;
   eyebrowWeight: string;
   eyebrowSpacing: string;
-  logoMainUrl: string;
-  logoLightUrl: string;
-  faviconUrl: string;
+  logoMainPath: string;
+  logoLightPath: string;
+  faviconPath: string;
 };
 
 const headingFonts = [
@@ -36,11 +41,16 @@ const uiFonts = ["Inter", "Manrope", "DM Sans", "Montserrat", "Sora", "Arial"];
 
 export function BrandEditor({
   propertyName,
+  propertyId,
+  libraryImages,
   initial,
 }: {
   propertyName: string;
+  propertyId: string;
+  libraryImages: MediaLibraryItem[];
   initial: BrandValues;
 }) {
+  const supabase = useMemo(() => createClient(), []);
   const [values, setValues] = useState(initial);
 
   const previewStyle = useMemo(
@@ -56,7 +66,8 @@ export function BrandEditor({
         "--body-font": values.bodyFont,
         "--eyebrow-transform": values.eyebrowTransform,
         "--eyebrow-weight": values.eyebrowWeight,
-        "--eyebrow-spacing": values.eyebrowSpacing === "wide" ? "0.16em" : "0.05em",
+        "--eyebrow-spacing":
+          values.eyebrowSpacing === "wide" ? "0.16em" : "0.05em",
       }) as CSSProperties,
     [values]
   );
@@ -65,51 +76,72 @@ export function BrandEditor({
     setValues((current) => ({ ...current, [key]: value }));
   }
 
+  function mediaUrl(path: string) {
+    if (!path) return "";
+    if (/^https?:\/\//.test(path)) return path;
+    return supabase.storage.from("property-media").getPublicUrl(path).data.publicUrl;
+  }
+
   return (
     <form action={updateBrandIdentity}>
       <div className="settings-columns">
         <section className="admin-panel brand-editor-panel">
           <div className="brand-section">
             <span className="eyebrow">Arquivos da marca</span>
-            <h2>Logotipos</h2>
+            <h2>Logotipos e favicon</h2>
             <p className="section-note">
-              Nesta V1 usamos URLs de arquivos. O upload direto entra junto da
-              biblioteca de mídia na próxima etapa.
+              Escolha visualmente os arquivos da marca ou envie novos sem sair
+              desta tela.
             </p>
 
-            <div className="field-grid">
-              <label className="field-full">
-                Logo principal
-                <input
-                  type="url"
-                  name="logoMainUrl"
-                  value={values.logoMainUrl}
-                  onChange={(event) => set("logoMainUrl", event.target.value)}
-                  placeholder="https://..."
-                />
-              </label>
+            <div className="brand-media-pickers">
+              <MediaPicker
+                propertyId={propertyId}
+                fieldName="logoMainMedia"
+                initialLibrary={libraryImages}
+                initialSelected={values.logoMainPath ? [values.logoMainPath] : []}
+                max={1}
+                title="Logo principal"
+                description="Usada no cabeçalho claro do site."
+                uploadCategory="Marca"
+                libraryCategories={["Marca"]}
+                accept="image/png,image/webp,image/svg+xml,image/jpeg"
+                onSelectionChange={(paths) =>
+                  set("logoMainPath", paths[0] ?? "")
+                }
+              />
 
-              <label className="field-full">
-                Logo clara
-                <input
-                  type="url"
-                  name="logoLightUrl"
-                  value={values.logoLightUrl}
-                  onChange={(event) => set("logoLightUrl", event.target.value)}
-                  placeholder="https://..."
-                />
-              </label>
+              <MediaPicker
+                propertyId={propertyId}
+                fieldName="logoLightMedia"
+                initialLibrary={libraryImages}
+                initialSelected={values.logoLightPath ? [values.logoLightPath] : []}
+                max={1}
+                title="Logo clara"
+                description="Usada sobre fundos escuros, especialmente no painel."
+                uploadCategory="Marca"
+                libraryCategories={["Marca"]}
+                accept="image/png,image/webp,image/svg+xml,image/jpeg"
+                onSelectionChange={(paths) =>
+                  set("logoLightPath", paths[0] ?? "")
+                }
+              />
 
-              <label className="field-full">
-                Favicon
-                <input
-                  type="url"
-                  name="faviconUrl"
-                  value={values.faviconUrl}
-                  onChange={(event) => set("faviconUrl", event.target.value)}
-                  placeholder="https://..."
-                />
-              </label>
+              <MediaPicker
+                propertyId={propertyId}
+                fieldName="faviconMedia"
+                initialLibrary={libraryImages}
+                initialSelected={values.faviconPath ? [values.faviconPath] : []}
+                max={1}
+                title="Favicon"
+                description="Ícone pequeno exibido na aba do navegador."
+                uploadCategory="Favicon"
+                libraryCategories={["Favicon"]}
+                accept="image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+                onSelectionChange={(paths) =>
+                  set("faviconPath", paths[0] ?? "")
+                }
+              />
             </div>
           </div>
 
@@ -132,7 +164,10 @@ export function BrandEditor({
                     name={key}
                     value={values[key as keyof BrandValues]}
                     onChange={(event) =>
-                      set(key as keyof BrandValues, event.target.value.toUpperCase())
+                      set(
+                        key as keyof BrandValues,
+                        event.target.value.toUpperCase()
+                      )
                     }
                   />
                   <code>{values[key as keyof BrandValues]}</code>
@@ -190,7 +225,9 @@ export function BrandEditor({
                 <select
                   name="eyebrowTransform"
                   value={values.eyebrowTransform}
-                  onChange={(event) => set("eyebrowTransform", event.target.value)}
+                  onChange={(event) =>
+                    set("eyebrowTransform", event.target.value)
+                  }
                 >
                   <option value="uppercase">CAIXA ALTA</option>
                   <option value="normal">Caixa normal</option>
@@ -233,20 +270,41 @@ export function BrandEditor({
         </section>
 
         <aside className="admin-panel brand-preview" style={previewStyle}>
+          <span className="eyebrow">Pré-visualização</span>
+
           <div className="brand-preview-logo">
-            {values.logoMainUrl ? (
-              <img src={values.logoMainUrl} alt={propertyName} />
+            {values.logoMainPath ? (
+              <img src={mediaUrl(values.logoMainPath)} alt={propertyName} />
             ) : (
               <strong>{propertyName}</strong>
             )}
           </div>
 
-          <span className="eyebrow">Acomodação</span>
           <h2>Chalé Jardim</h2>
           <p>Natureza e privacidade para momentos tranquilos.</p>
           <button className="button button-primary" type="button">
             Ver disponibilidade
           </button>
+
+          <div className="brand-assets-preview">
+            <div className="brand-dark-preview">
+              <small>Logo clara</small>
+              {values.logoLightPath ? (
+                <img src={mediaUrl(values.logoLightPath)} alt="" />
+              ) : (
+                <span>Sem logo clara</span>
+              )}
+            </div>
+
+            <div className="favicon-preview">
+              <small>Favicon</small>
+              {values.faviconPath ? (
+                <img src={mediaUrl(values.faviconPath)} alt="" />
+              ) : (
+                <span>—</span>
+              )}
+            </div>
+          </div>
 
           <div className="brand-swatches">
             {[
