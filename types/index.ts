@@ -1,3 +1,10 @@
+export type PaletteKey =
+  | "primary"
+  | "secondary"
+  | "accent"
+  | "background"
+  | "text";
+
 export type BookingMode = "criartista" | "external_link" | "widget" | "embed" | "popup";
 
 export type LeadStatus =
@@ -20,6 +27,8 @@ export type PropertyTheme = {
   eyebrowTransform: "uppercase" | "normal" | "capitalize";
   eyebrowWeight: "400" | "500" | "600";
   eyebrowSpacing: "normal" | "wide";
+  headerSurfaceKey: PaletteKey;
+  postHeroSurfaceKey: PaletteKey;
   logoMainUrl?: string;
   logoLightUrl?: string;
   faviconUrl?: string;
