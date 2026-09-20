@@ -181,9 +181,7 @@ export function BrandEditor({
       <div className="brand-editor-toolbar">
         <div>
           <strong>Proteção de contraste ativa</strong>
-          <span>
-            Você personaliza a marca; o sistema protege a leitura.
-          </span>
+          <span>Você personaliza a marca; o sistema protege a leitura.</span>
         </div>
 
         <button
