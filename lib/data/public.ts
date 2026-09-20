@@ -48,6 +48,9 @@ function mapTheme(row: Tables<"property_themes"> | null): PropertyTheme {
     eyebrowTransform: row.eyebrow_transform as PropertyTheme["eyebrowTransform"],
     eyebrowWeight: row.eyebrow_weight as PropertyTheme["eyebrowWeight"],
     eyebrowSpacing: row.eyebrow_spacing as PropertyTheme["eyebrowSpacing"],
+    logoMainUrl: row.logo_main_url ?? undefined,
+    logoLightUrl: row.logo_light_url ?? undefined,
+    faviconUrl: row.favicon_url ?? undefined,
   };
 }
 
