@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { updateBrandIdentity } from "@/app/admin/(protected)/identidade/actions";
 
 type BrandValues = {
@@ -57,7 +57,7 @@ export function BrandEditor({
         "--eyebrow-transform": values.eyebrowTransform,
         "--eyebrow-weight": values.eyebrowWeight,
         "--eyebrow-spacing": values.eyebrowSpacing === "wide" ? "0.16em" : "0.05em",
-      }) as React.CSSProperties,
+      }) as CSSProperties,
     [values]
   );
 
