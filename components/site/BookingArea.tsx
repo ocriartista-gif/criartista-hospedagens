@@ -9,6 +9,11 @@ type BookingAreaProps = {
   propertyWhatsapp: string;
   accommodations: Accommodation[];
   accommodationId?: string;
+  content?: {
+    eyebrow?: string;
+    title?: string;
+    description?: string;
+  };
 };
 
 export function BookingArea({
@@ -16,6 +21,7 @@ export function BookingArea({
   propertyWhatsapp,
   accommodations,
   accommodationId,
+  content,
 }: BookingAreaProps) {
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
@@ -88,8 +94,11 @@ export function BookingArea({
   return (
     <section className="booking-area" id="reserva">
       <div>
-        <span className="eyebrow">Reserve sem intermediários</span>
-        <h2>Consulte as melhores datas para você.</h2>
+        <span className="eyebrow">
+          {content?.eyebrow || "Reserve sem intermediários"}
+        </span>
+        <h2>{content?.title || "Consulte as melhores datas para você."}</h2>
+        {content?.description && <p>{content.description}</p>}
       </div>
 
       {state === "sent" ? (
