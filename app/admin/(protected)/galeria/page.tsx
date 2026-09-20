@@ -1,36 +1,92 @@
 import { GalleryManager } from "@/components/admin/GalleryManager";
 import { getAdminContext } from "@/lib/data/admin";
+import type { Json } from "@/types/database";
 
 export const dynamic = "force-dynamic";
+
+function heroImage(extra: Json) {
+  if (!extra || typeof extra !== "object" || Array.isArray(extra)) return null;
+  const value = (extra as Record<string, Json | undefined>).hero_image;
+  return typeof value === "string" && value ? value : null;
+}
 
 export default async function GalleryPage() {
   const { supabase, membership } = await getAdminContext();
 
-  const { data: images, error } = await supabase
-    .from("gallery_images")
-    .select("*")
-    .eq("property_id", membership.property_id)
-    .order("sort_order")
-    .order("created_at");
+  const [
+    { data: images, error },
+    { data: accommodations, error: accommodationsError },
+    { data: sections, error: sectionsError },
+  ] = await Promise.all([
+    supabase
+      .from("gallery_images")
+      .select("*")
+      .eq("property_id", membership.property_id)
+      .order("sort_order")
+      .order("created_at"),
+    supabase
+      .from("accommodations")
+      .select("id")
+      .eq("property_id", membership.property_id),
+    supabase
+      .from("content_sections")
+      .select("section_key, extra")
+      .eq("property_id", membership.property_id),
+  ]);
 
   if (error) throw error;
+  if (accommodationsError) throw accommodationsError;
+  if (sectionsError) throw sectionsError;
+
+  const accommodationIds = (accommodations ?? []).map((item) => item.id);
+
+  const { data: accommodationImages, error: accommodationImagesError } =
+    accommodationIds.length
+      ? await supabase
+          .from("accommodation_images")
+          .select("storage_path")
+          .in("accommodation_id", accommodationIds)
+      : { data: [], error: null };
+
+  if (accommodationImagesError) throw accommodationImagesError;
+
+  const inUsePaths = new Set(
+    (accommodationImages ?? []).map((item) => item.storage_path)
+  );
+
+  for (const section of sections ?? []) {
+    if (section.section_key === "hero") {
+      const path = heroImage(section.extra);
+      if (path) inUsePaths.add(path);
+    }
+  }
 
   return (
     <>
       <header className="admin-header">
         <div>
-          <span className="eyebrow">Mídia</span>
+          <span className="eyebrow">Biblioteca de mídia</span>
           <h1>Galeria</h1>
           <p>
-            Biblioteca visual da propriedade para fotos de ambiente, experiências,
-            acomodações e peças da marca.
+            Aqui ficam os arquivos disponíveis. A escolha de quais fotos aparecem
+            no site acontece dentro de cada seção ou acomodação.
           </p>
         </div>
       </header>
 
+      <div className="integration-runtime-note">
+        <strong>Como usar as fotos</strong>
+        <span>
+          Para trocar o Hero, vá em Conteúdo → Hero. Para fotos de quartos, abra
+          Acomodações e edite a acomodação desejada. Você verá as miniaturas desta
+          biblioteca diretamente nesses lugares.
+        </span>
+      </div>
+
       <GalleryManager
         propertyId={membership.property_id}
         initialImages={images ?? []}
+        inUsePaths={[...inUsePaths]}
       />
     </>
   );
