@@ -6,29 +6,44 @@ export const dynamic = "force-dynamic";
 export default async function BrandPage({
   searchParams,
 }: {
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{
+    saved?: string;
+    reset?: string;
+    error?: string;
+  }>;
 }) {
-  const { saved } = await searchParams;
+  const params = await searchParams;
   const { supabase, membership, property } = await getAdminContext();
 
-  const [{ data: theme, error }, { data: library, error: libraryError }] =
-    await Promise.all([
-      supabase
-        .from("property_themes")
-        .select("*")
-        .eq("property_id", membership.property_id)
-        .single(),
-      supabase
-        .from("gallery_images")
-        .select("id, storage_path, alt_text, caption, category, sort_order")
-        .eq("property_id", membership.property_id)
-        .eq("published", true)
-        .order("sort_order")
-        .order("created_at", { ascending: false }),
-    ]);
+  const [
+    { data: theme, error },
+    { data: library, error: libraryError },
+    { data: lastHistory, error: historyError },
+  ] = await Promise.all([
+    supabase
+      .from("property_themes")
+      .select("*")
+      .eq("property_id", membership.property_id)
+      .single(),
+    supabase
+      .from("gallery_images")
+      .select("id, storage_path, alt_text, caption, category, sort_order")
+      .eq("property_id", membership.property_id)
+      .eq("published", true)
+      .order("sort_order")
+      .order("created_at", { ascending: false }),
+    supabase
+      .from("property_theme_history")
+      .select("id")
+      .eq("property_id", membership.property_id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
+  ]);
 
   if (error) throw error;
   if (libraryError) throw libraryError;
+  if (historyError) throw historyError;
 
   return (
     <>
@@ -36,20 +51,34 @@ export default async function BrandPage({
         <div>
           <span className="eyebrow">White-label protegido</span>
           <h1>Identidade da marca</h1>
-          <p>A marca pode mudar. A jornada de reserva não.</p>
+          <p>
+            Personalize a marca e a aplicação da paleta. Estrutura e contraste
+            continuam protegidos pelo sistema.
+          </p>
         </div>
       </header>
 
-      {saved === "1" && (
+      {params.saved === "1" && (
         <div className="feedback-box feedback-success">
           Identidade atualizada no site e no painel.
         </div>
+      )}
+
+      {params.reset === "1" && (
+        <div className="feedback-box feedback-success">
+          A última alteração da identidade foi desfeita.
+        </div>
+      )}
+
+      {params.error && (
+        <div className="feedback-box feedback-error">{params.error}</div>
       )}
 
       <BrandEditor
         propertyName={property.name}
         propertyId={membership.property_id}
         libraryImages={library ?? []}
+        canReset={Boolean(lastHistory)}
         initial={{
           primary: theme.primary_color,
           secondary: theme.secondary_color,
@@ -62,6 +91,8 @@ export default async function BrandPage({
           eyebrowTransform: theme.eyebrow_transform,
           eyebrowWeight: theme.eyebrow_weight,
           eyebrowSpacing: theme.eyebrow_spacing,
+          headerSurfaceKey: theme.header_surface_key,
+          postHeroSurfaceKey: theme.post_hero_surface_key,
           logoMainPath: theme.logo_main_url ?? "",
           logoLightPath: theme.logo_light_url ?? "",
           faviconPath: theme.favicon_url ?? "",
