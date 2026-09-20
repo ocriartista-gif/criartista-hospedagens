@@ -1,9 +1,12 @@
+import { MediaPicker, type MediaLibraryItem } from "@/components/admin/MediaPicker";
 import type { Tables } from "@/types/database";
 
 type AccommodationRow = Tables<"accommodations">;
 
 type Props = {
   action: (formData: FormData) => void | Promise<void>;
+  propertyId: string;
+  libraryImages: MediaLibraryItem[];
   accommodation?: AccommodationRow | null;
   imageUrls?: string[];
   submitLabel?: string;
@@ -11,17 +14,23 @@ type Props = {
 
 export function AccommodationForm({
   action,
+  propertyId,
+  libraryImages,
   accommodation,
   imageUrls = [],
   submitLabel = "Salvar acomodação",
 }: Props) {
   const amenities = Array.isArray(accommodation?.amenities)
-    ? accommodation.amenities.filter((item): item is string => typeof item === "string").join("\n")
+    ? accommodation.amenities
+        .filter((item): item is string => typeof item === "string")
+        .join("\n")
     : "";
 
   return (
     <form action={action} className="admin-panel accommodation-form">
-      {accommodation?.id && <input type="hidden" name="id" value={accommodation.id} />}
+      {accommodation?.id && (
+        <input type="hidden" name="id" value={accommodation.id} />
+      )}
 
       <div className="field-grid">
         <label>
@@ -131,21 +140,17 @@ export function AccommodationForm({
       </div>
 
       <section className="form-section">
-        <h2>Galeria</h2>
-        <p>Até 5 imagens nesta primeira versão. A primeira será a capa.</p>
-        <div className="field-grid">
-          {[0, 1, 2, 3, 4].map((index) => (
-            <label key={index} className={index === 0 ? "field-full" : ""}>
-              {index === 0 ? "Imagem de capa" : `Imagem ${index + 1}`}
-              <input
-                name={`image${index + 1}`}
-                type="url"
-                placeholder="https://..."
-                defaultValue={imageUrls[index] ?? ""}
-              />
-            </label>
-          ))}
-        </div>
+        <MediaPicker
+          propertyId={propertyId}
+          fieldName="imageSelection"
+          initialLibrary={libraryImages}
+          initialSelected={imageUrls}
+          max={5}
+          title="Fotos da acomodação"
+          description="Escolha até 5 fotos. Clique nas miniaturas para selecionar; a primeira será usada como capa."
+          uploadCategory="Acomodações"
+          coverLabel
+        />
       </section>
 
       <div className="form-actions">
