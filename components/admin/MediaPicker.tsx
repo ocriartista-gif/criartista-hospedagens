@@ -22,6 +22,9 @@ type Props = {
   description?: string;
   uploadCategory?: string;
   coverLabel?: boolean;
+  libraryCategories?: string[];
+  accept?: string;
+  onSelectionChange?: (paths: string[]) => void;
 };
 
 function cleanFileName(name: string) {
@@ -47,9 +50,21 @@ export function MediaPicker({
   description,
   uploadCategory = "Geral",
   coverLabel = false,
+  libraryCategories,
+  accept = "image/jpeg,image/png,image/webp,image/avif,image/svg+xml",
+  onSelectionChange,
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
-  const [library, setLibrary] = useState(initialLibrary);
+  const filteredLibrary = useMemo(
+    () =>
+      libraryCategories?.length
+        ? initialLibrary.filter((item) =>
+            item.category ? libraryCategories.includes(item.category) : false
+          )
+        : initialLibrary,
+    [initialLibrary, libraryCategories]
+  );
+  const [library, setLibrary] = useState(filteredLibrary);
   const [selected, setSelected] = useState(initialSelected.slice(0, max));
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
@@ -80,7 +95,9 @@ export function MediaPicker({
 
     setSelected((current) => {
       if (current.includes(path)) {
-        return current.filter((item) => item !== path);
+        const next = current.filter((item) => item !== path);
+        onSelectionChange?.(next);
+        return next;
       }
 
       if (current.length >= max) {
@@ -92,7 +109,9 @@ export function MediaPicker({
         return current;
       }
 
-      return [...current, path];
+      const next = [...current, path];
+      onSelectionChange?.(next);
+      return next;
     });
   }
 
@@ -103,6 +122,7 @@ export function MediaPicker({
 
       const next = [...current];
       [next[index], next[target]] = [next[target], next[index]];
+      onSelectionChange?.(next);
       return next;
     });
   }
@@ -168,7 +188,12 @@ export function MediaPicker({
       setLibrary((current) => [...created, ...current]);
       setSelected((current) => {
         const available = Math.max(0, max - current.length);
-        return [...current, ...created.slice(0, available).map((item) => item.storage_path)];
+        const next = [
+          ...current,
+          ...created.slice(0, available).map((item) => item.storage_path),
+        ];
+        onSelectionChange?.(next);
+        return next;
       });
 
       setMessage(
@@ -199,7 +224,7 @@ export function MediaPicker({
           {uploading ? "Enviando..." : "+ Enviar nova foto"}
           <input
             type="file"
-            accept="image/jpeg,image/png,image/webp,image/avif,image/svg+xml"
+            accept={accept}
             multiple={max > 1}
             disabled={uploading}
             onChange={uploadFiles}
