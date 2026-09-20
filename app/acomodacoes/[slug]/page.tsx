@@ -16,7 +16,7 @@ export default async function AccommodationPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const { property } = await getPublicSiteData();
+  const { property, content } = await getPublicSiteData();
   const [accommodation, accommodations] = await Promise.all([
     getPublicAccommodationBySlug(property.id, slug),
     getPublicAccommodations(property.id),
@@ -59,6 +59,7 @@ export default async function AccommodationPage({
           propertyWhatsapp={property.whatsapp}
           accommodations={accommodations}
           accommodationId={accommodation.id}
+          content={content.direct_booking}
         />
       </div>
     </main>
