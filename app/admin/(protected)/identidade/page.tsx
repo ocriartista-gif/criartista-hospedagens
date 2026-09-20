@@ -52,8 +52,8 @@ export default async function BrandPage({
           <span className="eyebrow">White-label protegido</span>
           <h1>Identidade da marca</h1>
           <p>
-            Personalize a marca e a aplicação da paleta. Estrutura e contraste
-            continuam protegidos pelo sistema.
+            Personalize a marca com regras simples: fundo geral, cabeçalho e
+            rodapé, além dos botões. Estrutura e contraste continuam protegidos.
           </p>
         </div>
       </header>
@@ -99,8 +99,8 @@ export default async function BrandPage({
               | "accent"
               | "background"
               | "text",
-          postHeroSurfaceKey:
-            theme.post_hero_surface_key as
+          ctaSurfaceKey:
+            theme.cta_surface_key as
               | "primary"
               | "secondary"
               | "accent"
