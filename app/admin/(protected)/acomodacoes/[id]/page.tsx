@@ -3,6 +3,8 @@ import { AccommodationForm } from "@/components/admin/AccommodationForm";
 import { deleteAccommodation, updateAccommodation } from "../actions";
 import { getAdminContext } from "@/lib/data/admin";
 
+export const dynamic = "force-dynamic";
+
 export default async function EditAccommodationPage({
   params,
 }: {
@@ -11,14 +13,25 @@ export default async function EditAccommodationPage({
   const { id } = await params;
   const { supabase, membership } = await getAdminContext();
 
-  const { data: accommodation, error } = await supabase
-    .from("accommodations")
-    .select("*")
-    .eq("id", id)
-    .eq("property_id", membership.property_id)
-    .maybeSingle();
+  const [{ data: accommodation, error }, { data: library, error: libraryError }] =
+    await Promise.all([
+      supabase
+        .from("accommodations")
+        .select("*")
+        .eq("id", id)
+        .eq("property_id", membership.property_id)
+        .maybeSingle(),
+      supabase
+        .from("gallery_images")
+        .select("id, storage_path, alt_text, caption, category, sort_order")
+        .eq("property_id", membership.property_id)
+        .eq("published", true)
+        .order("sort_order")
+        .order("created_at", { ascending: false }),
+    ]);
 
   if (error) throw error;
+  if (libraryError) throw libraryError;
   if (!accommodation) notFound();
 
   const { data: images, error: imageError } = await supabase
@@ -42,6 +55,8 @@ export default async function EditAccommodationPage({
       <AccommodationForm
         action={updateAccommodation}
         accommodation={accommodation}
+        propertyId={membership.property_id}
+        libraryImages={library ?? []}
         imageUrls={(images ?? []).map((image) => image.storage_path)}
       />
 
@@ -49,7 +64,7 @@ export default async function EditAccommodationPage({
         <input type="hidden" name="id" value={accommodation.id} />
         <div>
           <strong>Excluir acomodação</strong>
-          <p>Esta ação remove também as imagens relacionadas.</p>
+          <p>Esta ação remove também as relações com as imagens.</p>
         </div>
         <button className="button button-danger" type="submit">
           Excluir
