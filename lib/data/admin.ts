@@ -23,7 +23,7 @@ const fallbackTheme: PropertyTheme = {
   eyebrowWeight: "600",
   eyebrowSpacing: "wide",
   headerSurfaceKey: "background",
-  postHeroSurfaceKey: "background",
+  ctaSurfaceKey: "primary",
 };
 
 export async function getAdminContext() {
@@ -80,8 +80,8 @@ export async function getAdminContext() {
         eyebrowSpacing: themeRow.eyebrow_spacing as PropertyTheme["eyebrowSpacing"],
         headerSurfaceKey:
           themeRow.header_surface_key as PropertyTheme["headerSurfaceKey"],
-        postHeroSurfaceKey:
-          themeRow.post_hero_surface_key as PropertyTheme["postHeroSurfaceKey"],
+        ctaSurfaceKey:
+          themeRow.cta_surface_key as PropertyTheme["ctaSurfaceKey"],
         logoMainUrl: assetUrl(themeRow.logo_main_url),
         logoLightUrl: assetUrl(themeRow.logo_light_url),
         faviconUrl: assetUrl(themeRow.favicon_url),
