@@ -99,6 +99,7 @@ export default async function Home() {
         />
       </div>
 
+      <div className="post-hero-surface">
       <section className="section container split-section">
         <div>
           <span className="eyebrow">{intro.eyebrow}</span>
@@ -122,6 +123,7 @@ export default async function Home() {
           ))}
         </div>
       </section>
+      </div>
 
       <section className="section section-tint" id="experiencias">
         <div className="container">
