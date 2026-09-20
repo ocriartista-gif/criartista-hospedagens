@@ -7,7 +7,7 @@ type ThemePalette = Pick<
 >;
 
 type ContrastTheme = ThemePalette &
-  Pick<PropertyTheme, "headerSurfaceKey" | "postHeroSurfaceKey">;
+  Pick<PropertyTheme, "headerSurfaceKey" | "ctaSurfaceKey">;
 
 export const PALETTE_KEYS: PaletteKey[] = [
   "primary",
@@ -81,41 +81,33 @@ export function bestPaletteText(background: string, theme: ThemePalette) {
 
 export function getThemeContrastIssues(theme: ContrastTheme) {
   const issues: string[] = [];
-  const baseRatio = contrastRatio(theme.background, theme.text);
 
-  if (baseRatio < 4.5) {
+  if (contrastRatio(theme.background, theme.text) < 4.5) {
     issues.push(
       "Fundo e Texto precisam ter contraste mínimo de 4,5:1 para leitura."
     );
   }
 
-  if (contrastRatio(theme.primary, theme.background) < 2) {
+  const headerBackground = resolvePaletteColor(theme, theme.headerSurfaceKey);
+  const headerText = bestPaletteText(headerBackground, theme);
+  if (headerText.ratio < 4.5) {
     issues.push(
-      "A cor Principal precisa se diferenciar mais do Fundo para CTAs e hierarquia visual."
+      "Cabeçalho e rodapé não possuem uma cor de texto segura dentro da paleta."
     );
   }
 
-  const primaryText = bestPaletteText(theme.primary, theme);
-  if (primaryText.ratio < 4.5) {
+  const ctaBackground = resolvePaletteColor(theme, theme.ctaSurfaceKey);
+  const ctaText = bestPaletteText(ctaBackground, theme);
+  if (ctaText.ratio < 4.5) {
     issues.push(
-      "A cor Principal não possui uma cor de texto segura dentro da paleta."
+      "Botões e CTAs não possuem uma cor de texto segura dentro da paleta."
     );
   }
 
-  const surfaces: Array<[string, PaletteKey]> = [
-    ["Cabeçalho", theme.headerSurfaceKey],
-    ["Faixa após o Hero", theme.postHeroSurfaceKey],
-  ];
-
-  for (const [label, key] of surfaces) {
-    const background = resolvePaletteColor(theme, key);
-    const readable = bestPaletteText(background, theme);
-
-    if (readable.ratio < 4.5) {
-      issues.push(
-        `${label}: nenhuma das cores de leitura da paleta atinge contraste mínimo de 4,5:1.`
-      );
-    }
+  if (contrastRatio(ctaBackground, theme.background) < 2) {
+    issues.push(
+      "A cor dos botões precisa se diferenciar mais do fundo geral do site."
+    );
   }
 
   return issues;
@@ -124,11 +116,8 @@ export function getThemeContrastIssues(theme: ContrastTheme) {
 export function themeStyle(theme: PropertyTheme): CSSProperties {
   const headerBackground = resolvePaletteColor(theme, theme.headerSurfaceKey);
   const headerText = bestPaletteText(headerBackground, theme).color;
-  const postHeroBackground = resolvePaletteColor(
-    theme,
-    theme.postHeroSurfaceKey
-  );
-  const postHeroText = bestPaletteText(postHeroBackground, theme).color;
+  const ctaBackground = resolvePaletteColor(theme, theme.ctaSurfaceKey);
+  const ctaText = bestPaletteText(ctaBackground, theme).color;
   const onPrimary = bestPaletteText(theme.primary, theme).color;
 
   return {
@@ -140,8 +129,10 @@ export function themeStyle(theme: PropertyTheme): CSSProperties {
     "--brand-on-primary": onPrimary,
     "--header-bg": headerBackground,
     "--header-text": headerText,
-    "--post-hero-bg": postHeroBackground,
-    "--post-hero-text": postHeroText,
+    "--footer-bg": headerBackground,
+    "--footer-text": headerText,
+    "--cta-bg": ctaBackground,
+    "--cta-text": ctaText,
     "--heading-font": theme.headingFont,
     "--eyebrow-font": theme.eyebrowFont,
     "--body-font": theme.bodyFont,
