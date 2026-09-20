@@ -28,7 +28,7 @@ export type PropertyTheme = {
   eyebrowWeight: "400" | "500" | "600";
   eyebrowSpacing: "normal" | "wide";
   headerSurfaceKey: PaletteKey;
-  postHeroSurfaceKey: PaletteKey;
+  ctaSurfaceKey: PaletteKey;
   logoMainUrl?: string;
   logoLightUrl?: string;
   faviconUrl?: string;
