@@ -72,7 +72,11 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
     <div className="admin-shell" style={themeStyle(theme)}>
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          <strong>{property.name}</strong>
+          {theme.logoLightUrl ? (
+            <img className="admin-brand-logo" src={theme.logoLightUrl} alt={property.name} />
+          ) : (
+            <strong>{property.name}</strong>
+          )}
           <span>Painel administrativo</span>
         </div>
 
