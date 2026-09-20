@@ -22,6 +22,11 @@ export default async function Home() {
     title: property.tagline,
     description: property.description,
   };
+  const directBooking = content.direct_booking ?? {
+    eyebrow: "RESERVE SEM INTERMEDIÁRIOS",
+    title: "Consulte as melhores datas para você.",
+    description: "",
+  };
   const intro = content.intro ?? {
     eyebrow: "SUA PAUSA COMEÇA AQUI",
     title: "O conforto de chegar e sentir que escolheu certo.",
@@ -83,6 +88,7 @@ export default async function Home() {
           propertyId={property.id}
           propertyWhatsapp={property.whatsapp}
           accommodations={accommodations}
+          content={directBooking}
         />
       </div>
 
