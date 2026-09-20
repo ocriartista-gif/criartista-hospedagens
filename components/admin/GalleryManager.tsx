@@ -32,9 +32,11 @@ function labelFromFile(name: string) {
 export function GalleryManager({
   propertyId,
   initialImages,
+  inUsePaths = [],
 }: {
   propertyId: string;
   initialImages: GalleryImage[];
+  inUsePaths?: string[];
 }) {
   const router = useRouter();
   const supabase = useMemo(() => createClient(), []);
@@ -168,6 +170,13 @@ export function GalleryManager({
   }
 
   async function removeImage(image: GalleryImage) {
+    if (inUsePaths.includes(image.storage_path)) {
+      setMessage(
+        "Esta imagem está em uso no site. Remova-a da seção ou acomodação antes de excluí-la da biblioteca."
+      );
+      return;
+    }
+
     const confirmed = window.confirm(
       "Remover esta imagem da biblioteca? Essa ação não pode ser desfeita."
     );
@@ -240,8 +249,20 @@ export function GalleryManager({
                 src={publicUrl(image.storage_path)}
                 alt={image.alt_text ?? ""}
               />
-              <span className={image.published ? "published" : "hidden"}>
-                {image.published ? "Disponível" : "Oculta"}
+              <span
+                className={
+                  inUsePaths.includes(image.storage_path)
+                    ? "in-use"
+                    : image.published
+                      ? "published"
+                      : "hidden"
+                }
+              >
+                {inUsePaths.includes(image.storage_path)
+                  ? "Em uso"
+                  : image.published
+                    ? "Disponível"
+                    : "Oculta"}
               </span>
             </div>
 
@@ -305,8 +326,14 @@ export function GalleryManager({
                   className="button button-danger"
                   type="button"
                   onClick={() => removeImage(image)}
+                  disabled={inUsePaths.includes(image.storage_path)}
+                  title={
+                    inUsePaths.includes(image.storage_path)
+                      ? "Remova esta foto da seção ou acomodação antes de excluí-la."
+                      : "Remover da biblioteca"
+                  }
                 >
-                  Remover
+                  {inUsePaths.includes(image.storage_path) ? "Em uso" : "Remover"}
                 </button>
               </div>
             </form>
