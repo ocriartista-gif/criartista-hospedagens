@@ -1,6 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 import type { PropertyTheme } from "@/types";
 
+function assetUrl(path: string | null) {
+  if (!path) return undefined;
+  if (/^https?:\/\//.test(path)) return path;
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  return base
+    ? `${base}/storage/v1/object/public/property-media/${path}`
+    : path;
+}
+
 const fallbackTheme: PropertyTheme = {
   primary: "#183B2A",
   secondary: "#8CA67C",
@@ -67,9 +76,9 @@ export async function getAdminContext() {
         eyebrowTransform: themeRow.eyebrow_transform as PropertyTheme["eyebrowTransform"],
         eyebrowWeight: themeRow.eyebrow_weight as PropertyTheme["eyebrowWeight"],
         eyebrowSpacing: themeRow.eyebrow_spacing as PropertyTheme["eyebrowSpacing"],
-        logoMainUrl: themeRow.logo_main_url ?? undefined,
-        logoLightUrl: themeRow.logo_light_url ?? undefined,
-        faviconUrl: themeRow.favicon_url ?? undefined,
+        logoMainUrl: assetUrl(themeRow.logo_main_url),
+        logoLightUrl: assetUrl(themeRow.logo_light_url),
+        faviconUrl: assetUrl(themeRow.favicon_url),
       }
     : fallbackTheme;
 
