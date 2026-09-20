@@ -24,9 +24,14 @@ function slugify(value: string) {
 }
 
 function imageUrls(formData: FormData) {
-  return [1, 2, 3, 4, 5]
-    .map((index) => text(formData, `image${index}`))
-    .filter(Boolean);
+  try {
+    const parsed = JSON.parse(text(formData, "imageSelection"));
+    return Array.isArray(parsed)
+      ? parsed.filter((value): value is string => typeof value === "string" && value.length > 0).slice(0, 5)
+      : [];
+  } catch {
+    return [];
+  }
 }
 
 async function replaceImages(
