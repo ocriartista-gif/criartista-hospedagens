@@ -514,6 +514,7 @@ export type Database = {
           accent_color: string
           background_color: string
           body_font: string
+          cta_surface_key: string
           eyebrow_font: string
           eyebrow_spacing: string
           eyebrow_transform: string
@@ -534,6 +535,7 @@ export type Database = {
           accent_color?: string
           background_color?: string
           body_font?: string
+          cta_surface_key?: string
           eyebrow_font?: string
           eyebrow_spacing?: string
           eyebrow_transform?: string
@@ -554,6 +556,7 @@ export type Database = {
           accent_color?: string
           background_color?: string
           body_font?: string
+          cta_surface_key?: string
           eyebrow_font?: string
           eyebrow_spacing?: string
           eyebrow_transform?: string
