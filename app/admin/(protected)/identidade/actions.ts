@@ -87,6 +87,8 @@ function restoreValue<T>(
 
 function refreshIdentity() {
   revalidatePath("/", "layout");
+  revalidatePath("/acomodacoes", "page");
+  revalidatePath("/acomodacoes/[slug]", "page");
   revalidatePath("/admin", "layout");
   revalidatePath("/admin/identidade");
   revalidatePath("/admin/galeria");
@@ -128,11 +130,7 @@ export async function updateBrandIdentity(formData: FormData) {
       ? (eyebrowSpacing as PropertyTheme["eyebrowSpacing"])
       : "wide",
     headerSurfaceKey: paletteKey(formData, "headerSurfaceKey", "background"),
-    postHeroSurfaceKey: paletteKey(
-      formData,
-      "postHeroSurfaceKey",
-      "background"
-    ),
+    ctaSurfaceKey: paletteKey(formData, "ctaSurfaceKey", "primary"),
     logoMainUrl: logoMain ?? undefined,
     logoLightUrl: logoLight ?? undefined,
     faviconUrl: favicon ?? undefined,
@@ -179,7 +177,8 @@ export async function updateBrandIdentity(formData: FormData) {
       eyebrow_weight: nextTheme.eyebrowWeight,
       eyebrow_spacing: nextTheme.eyebrowSpacing,
       header_surface_key: nextTheme.headerSurfaceKey,
-      post_hero_surface_key: nextTheme.postHeroSurfaceKey,
+      cta_surface_key: nextTheme.ctaSurfaceKey,
+      post_hero_surface_key: "background",
       logo_main_url: logoMain,
       logo_light_url: logoLight,
       favicon_url: favicon,
@@ -242,11 +241,8 @@ export async function resetLastBrandIdentity() {
         "header_surface_key",
         "background"
       ),
-      post_hero_surface_key: restoreValue(
-        previous,
-        "post_hero_surface_key",
-        "background"
-      ),
+      cta_surface_key: restoreValue(previous, "cta_surface_key", "primary"),
+      post_hero_surface_key: "background",
       logo_main_url: restoreValue(previous, "logo_main_url", null),
       logo_light_url: restoreValue(previous, "logo_light_url", null),
       favicon_url: restoreValue(previous, "favicon_url", null),
