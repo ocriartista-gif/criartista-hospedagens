@@ -33,6 +33,11 @@ export default async function GalleryPage() {
       .from("content_sections")
       .select("section_key, extra")
       .eq("property_id", membership.property_id),
+    supabase
+      .from("property_themes")
+      .select("logo_main_url, logo_light_url, favicon_url")
+      .eq("property_id", membership.property_id)
+      .maybeSingle(),
   ]);
 
   if (error) throw error;
@@ -84,8 +89,8 @@ export default async function GalleryPage() {
         <strong>Como usar as fotos</strong>
         <span>
           Para trocar o Hero, vá em Conteúdo → Hero. Para fotos de quartos, abra
-          Acomodações e edite a acomodação desejada. Você verá as miniaturas desta
-          biblioteca diretamente nesses lugares.
+          Acomodações. Logos e favicon ficam em Identidade. As miniaturas desta
+          biblioteca aparecem diretamente em cada um desses lugares.
         </span>
       </div>
 
