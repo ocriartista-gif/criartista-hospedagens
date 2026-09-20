@@ -34,16 +34,38 @@ function font(formData: FormData, key: string, fallback: string) {
   return allowedFonts.has(value) ? value : fallback;
 }
 
+function selectedMedia(formData: FormData, key: string) {
+  try {
+    const parsed = JSON.parse(text(formData, key));
+    return Array.isArray(parsed)
+      ? parsed.filter(
+          (value): value is string =>
+            typeof value === "string" && value.length > 0
+        )
+      : [];
+  } catch {
+    return [];
+  }
+}
+
 export async function updateBrandIdentity(formData: FormData) {
   const { supabase, membership } = await getAdminContext();
 
-  if (!["owner", "manager", "marketing", "technical_admin"].includes(membership.role)) {
+  if (
+    !["owner", "manager", "marketing", "technical_admin"].includes(
+      membership.role
+    )
+  ) {
     throw new Error("Você não tem permissão para editar a identidade.");
   }
 
   const eyebrowTransform = text(formData, "eyebrowTransform");
   const eyebrowWeight = text(formData, "eyebrowWeight");
   const eyebrowSpacing = text(formData, "eyebrowSpacing");
+
+  const logoMain = selectedMedia(formData, "logoMainMedia")[0] ?? null;
+  const logoLight = selectedMedia(formData, "logoLightMedia")[0] ?? null;
+  const favicon = selectedMedia(formData, "faviconMedia")[0] ?? null;
 
   const { error } = await supabase
     .from("property_themes")
@@ -56,7 +78,9 @@ export async function updateBrandIdentity(formData: FormData) {
       heading_font: font(formData, "headingFont", "Playfair Display"),
       eyebrow_font: font(formData, "eyebrowFont", "Inter"),
       body_font: font(formData, "bodyFont", "Inter"),
-      eyebrow_transform: ["uppercase", "normal", "capitalize"].includes(eyebrowTransform)
+      eyebrow_transform: ["uppercase", "normal", "capitalize"].includes(
+        eyebrowTransform
+      )
         ? eyebrowTransform
         : "uppercase",
       eyebrow_weight: ["400", "500", "600"].includes(eyebrowWeight)
@@ -65,9 +89,9 @@ export async function updateBrandIdentity(formData: FormData) {
       eyebrow_spacing: ["normal", "wide"].includes(eyebrowSpacing)
         ? eyebrowSpacing
         : "wide",
-      logo_main_url: text(formData, "logoMainUrl") || null,
-      logo_light_url: text(formData, "logoLightUrl") || null,
-      favicon_url: text(formData, "faviconUrl") || null,
+      logo_main_url: logoMain,
+      logo_light_url: logoLight,
+      favicon_url: favicon,
       updated_at: new Date().toISOString(),
     })
     .eq("property_id", membership.property_id);
@@ -77,6 +101,7 @@ export async function updateBrandIdentity(formData: FormData) {
   revalidatePath("/", "layout");
   revalidatePath("/admin", "layout");
   revalidatePath("/admin/identidade");
+  revalidatePath("/admin/galeria");
 
   redirect("/admin/identidade?saved=1");
 }
