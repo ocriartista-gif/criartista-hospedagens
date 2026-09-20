@@ -22,7 +22,9 @@ export const property: Property = {
     bodyFont: "Arial",
     eyebrowTransform: "uppercase",
     eyebrowWeight: "600",
-    eyebrowSpacing: "wide"
+    eyebrowSpacing: "wide",
+    headerSurfaceKey: "background",
+    postHeroSurfaceKey: "background"
   }
 };
 
