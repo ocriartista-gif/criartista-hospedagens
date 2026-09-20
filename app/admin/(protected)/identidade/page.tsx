@@ -88,11 +88,24 @@ export default async function BrandPage({
           headingFont: theme.heading_font,
           eyebrowFont: theme.eyebrow_font,
           bodyFont: theme.body_font,
-          eyebrowTransform: theme.eyebrow_transform,
-          eyebrowWeight: theme.eyebrow_weight,
-          eyebrowSpacing: theme.eyebrow_spacing,
-          headerSurfaceKey: theme.header_surface_key,
-          postHeroSurfaceKey: theme.post_hero_surface_key,
+          eyebrowTransform:
+            theme.eyebrow_transform as "uppercase" | "normal" | "capitalize",
+          eyebrowWeight: theme.eyebrow_weight as "400" | "500" | "600",
+          eyebrowSpacing: theme.eyebrow_spacing as "normal" | "wide",
+          headerSurfaceKey:
+            theme.header_surface_key as
+              | "primary"
+              | "secondary"
+              | "accent"
+              | "background"
+              | "text",
+          postHeroSurfaceKey:
+            theme.post_hero_surface_key as
+              | "primary"
+              | "secondary"
+              | "accent"
+              | "background"
+              | "text",
           logoMainPath: theme.logo_main_url ?? "",
           logoLightPath: theme.logo_light_url ?? "",
           faviconPath: theme.favicon_url ?? "",
