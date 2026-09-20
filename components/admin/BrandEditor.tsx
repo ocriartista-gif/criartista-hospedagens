@@ -13,6 +13,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   bestPaletteText,
   getThemeContrastIssues,
+  isDarkColor,
   PALETTE_KEYS,
   PALETTE_LABELS,
   resolvePaletteColor,
@@ -32,7 +33,7 @@ type BrandValues = {
   eyebrowWeight: "400" | "500" | "600";
   eyebrowSpacing: "normal" | "wide";
   headerSurfaceKey: PaletteKey;
-  postHeroSurfaceKey: PaletteKey;
+  ctaSurfaceKey: PaletteKey;
   logoMainPath: string;
   logoLightPath: string;
   faviconPath: string;
@@ -133,12 +134,12 @@ export function BrandEditor({
     values.headerSurfaceKey
   );
   const headerText = bestPaletteText(headerBackground, values).color;
-  const postHeroBackground = resolvePaletteColor(
-    values,
-    values.postHeroSurfaceKey
-  );
-  const postHeroText = bestPaletteText(postHeroBackground, values).color;
-  const onPrimary = bestPaletteText(values.primary, values).color;
+  const ctaBackground = resolvePaletteColor(values, values.ctaSurfaceKey);
+  const ctaText = bestPaletteText(ctaBackground, values).color;
+  const headerUsesDarkSurface = isDarkColor(headerBackground);
+  const headerLogoPath = headerUsesDarkSurface
+    ? values.logoLightPath || values.logoMainPath
+    : values.logoMainPath || values.logoLightPath;
 
   const previewStyle = useMemo(
     () =>
@@ -148,11 +149,12 @@ export function BrandEditor({
         "--brand-accent": values.accent,
         "--brand-background": values.background,
         "--brand-text": values.text,
-        "--brand-on-primary": onPrimary,
         "--header-bg": headerBackground,
         "--header-text": headerText,
-        "--post-hero-bg": postHeroBackground,
-        "--post-hero-text": postHeroText,
+        "--footer-bg": headerBackground,
+        "--footer-text": headerText,
+        "--cta-bg": ctaBackground,
+        "--cta-text": ctaText,
         "--heading-font": values.headingFont,
         "--eyebrow-font": values.eyebrowFont,
         "--body-font": values.bodyFont,
@@ -161,14 +163,7 @@ export function BrandEditor({
         "--eyebrow-spacing":
           values.eyebrowSpacing === "wide" ? "0.16em" : "0.05em",
       }) as CSSProperties,
-    [
-      values,
-      onPrimary,
-      headerBackground,
-      headerText,
-      postHeroBackground,
-      postHeroText,
-    ]
+    [values, headerBackground, headerText, ctaBackground, ctaText]
   );
 
   function set<K extends keyof BrandValues>(key: K, value: BrandValues[K]) {
@@ -187,7 +182,7 @@ export function BrandEditor({
         <div>
           <strong>Proteção de contraste ativa</strong>
           <span>
-            O sistema só permite salvar combinações legíveis.
+            Você personaliza a marca; o sistema protege a leitura.
           </span>
         </div>
 
@@ -220,7 +215,7 @@ export function BrandEditor({
                 initialSelected={values.logoMainPath ? [values.logoMainPath] : []}
                 max={1}
                 title="Logo principal"
-                description="Usada em superfícies claras."
+                description="Usada preferencialmente em superfícies claras."
                 uploadCategory="Marca"
                 libraryCategories={["Marca"]}
                 accept="image/png,image/webp,image/svg+xml,image/jpeg"
@@ -236,7 +231,7 @@ export function BrandEditor({
                 initialSelected={values.logoLightPath ? [values.logoLightPath] : []}
                 max={1}
                 title="Logo clara"
-                description="O sistema usa esta versão automaticamente em superfícies escuras."
+                description="Usada automaticamente quando cabeçalho e rodapé forem escuros."
                 uploadCategory="Marca"
                 libraryCategories={["Marca"]}
                 accept="image/png,image/webp,image/svg+xml,image/jpeg"
@@ -267,8 +262,8 @@ export function BrandEditor({
             <span className="eyebrow">Paleta</span>
             <h2>Cores da marca</h2>
             <p className="section-note">
-              As superfícies do site usam estas mesmas cores. Não criamos cores
-              escondidas fora da paleta.
+              A cor Fundo passa a ser o fundo geral de todo o site. As outras
+              cores alimentam botões, cabeçalho, rodapé e detalhes.
             </p>
 
             <div className="color-grid">
@@ -276,7 +271,7 @@ export function BrandEditor({
                 ["primary", "Principal"],
                 ["secondary", "Secundária"],
                 ["accent", "Destaque"],
-                ["background", "Fundo"],
+                ["background", "Fundo geral"],
                 ["text", "Texto"],
               ].map(([key, label]) => (
                 <label key={key}>
@@ -311,23 +306,23 @@ export function BrandEditor({
               </div>
             ) : (
               <div className="contrast-ok">
-                ✓ Paleta aprovada para leitura e CTAs.
+                ✓ Paleta aprovada para leitura e conversão.
               </div>
             )}
           </div>
 
           <div className="brand-section">
-            <span className="eyebrow">Aplicação da paleta</span>
-            <h2>Onde cada cor aparece</h2>
+            <span className="eyebrow">Aplicação</span>
+            <h2>Duas escolhas para o site</h2>
             <p className="section-note">
-              Escolha apenas entre as cores da paleta. A cor do texto é definida
-              automaticamente pela regra de contraste.
+              O restante acompanha automaticamente o Fundo geral e a hierarquia
+              visual do layout.
             </p>
 
             <div className="surface-selector-stack">
               <SurfaceSelector
-                title="Cabeçalho"
-                description="Barra de navegação no topo do site."
+                title="Cabeçalho + Rodapé"
+                description="Os dois usam a mesma cor para dar unidade ao site."
                 name="headerSurfaceKey"
                 value={values.headerSurfaceKey}
                 values={values}
@@ -335,12 +330,12 @@ export function BrandEditor({
               />
 
               <SurfaceSelector
-                title="Faixa após o Hero"
-                description="Área de apresentação que conduz o visitante até as acomodações."
-                name="postHeroSurfaceKey"
-                value={values.postHeroSurfaceKey}
+                title="Botões + CTAs"
+                description="Cor dos principais botões de ação e reserva."
+                name="ctaSurfaceKey"
+                value={values.ctaSurfaceKey}
                 values={values}
-                onChange={(value) => set("postHeroSurfaceKey", value)}
+                onChange={(value) => set("ctaSurfaceKey", value)}
               />
             </div>
           </div>
@@ -460,8 +455,8 @@ export function BrandEditor({
 
           <div className="brand-mini-site">
             <div className="brand-mini-header">
-              {values.logoMainPath ? (
-                <img src={mediaUrl(values.logoMainPath)} alt={propertyName} />
+              {headerLogoPath ? (
+                <img src={mediaUrl(headerLogoPath)} alt={propertyName} />
               ) : (
                 <strong>{propertyName}</strong>
               )}
@@ -472,10 +467,18 @@ export function BrandEditor({
               <small>Hero / foto</small>
             </div>
 
-            <div className="brand-mini-post-hero">
+            <div className="brand-mini-body">
               <span className="eyebrow">Acomodações</span>
               <h3>Seu canto entre o verde.</h3>
-              <p>Uma prévia da aplicação real da paleta.</p>
+              <p>O fundo desta área representa o fundo geral do site.</p>
+              <button className="brand-mini-cta" type="button">
+                Consultar disponibilidade
+              </button>
+            </div>
+
+            <div className="brand-mini-footer">
+              <strong>{propertyName}</strong>
+              <small>Rodapé</small>
             </div>
           </div>
 
