@@ -1,3 +1,4 @@
+import { PasswordField } from "./PasswordField";
 import { login } from "./actions";
 
 export default async function AdminLoginPage({
@@ -55,16 +56,7 @@ export default async function AdminLoginPage({
                 />
               </label>
 
-              <label>
-                Senha
-                <input
-                  type="password"
-                  name="password"
-                  required
-                  autoComplete="current-password"
-                  placeholder="Sua senha"
-                />
-              </label>
+              <PasswordField />
 
               {error && <p className="form-error">{error}</p>}
 
