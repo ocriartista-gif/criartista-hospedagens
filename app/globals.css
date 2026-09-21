@@ -2448,3 +2448,219 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
     grid-template-columns:1fr;
   }
 }
+
+/* --- Assistente Criartista: identidade fixa da plataforma --- */
+.criartista-assistant{
+  --assistant-purple:#321064;
+  --assistant-purple-deep:#1D073D;
+  --assistant-orange:#FF6200;
+  --assistant-cream:#FBF8F3;
+  position:fixed;
+  right:22px;
+  bottom:22px;
+  z-index:80;
+  display:grid;
+  justify-items:end;
+  gap:10px;
+  pointer-events:none;
+}
+
+.criartista-assistant>*{
+  pointer-events:auto;
+}
+
+.criartista-assistant-trigger{
+  min-width:56px;
+  height:56px;
+  padding:0 15px;
+  border:0;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:9px;
+  background:var(--assistant-purple);
+  color:#fff;
+  box-shadow:0 12px 34px rgba(29,7,61,.24);
+  cursor:pointer;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+
+.criartista-assistant-trigger:hover{
+  transform:translateY(-2px);
+  background:var(--assistant-purple-deep);
+  box-shadow:0 16px 38px rgba(29,7,61,.29);
+}
+
+.criartista-assistant-trigger img{
+  width:21px;
+  height:38px;
+  object-fit:contain;
+  display:block;
+}
+
+.criartista-assistant-trigger span{
+  font-size:.74rem;
+  font-weight:800;
+  letter-spacing:.01em;
+}
+
+.criartista-assistant.open .criartista-assistant-trigger{
+  width:48px;
+  min-width:48px;
+  height:48px;
+  padding:0;
+  border-radius:15px;
+}
+
+.criartista-assistant.open .criartista-assistant-trigger img{
+  width:18px;
+  height:34px;
+}
+
+.criartista-assistant-popover{
+  width:min(360px,calc(100vw - 28px));
+  overflow:hidden;
+  border:1px solid rgba(50,16,100,.12);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:0 18px 52px rgba(29,7,61,.18);
+  animation:criartistaAssistantIn .16s ease-out;
+}
+
+@keyframes criartistaAssistantIn{
+  from{opacity:0;transform:translateY(8px) scale(.98)}
+  to{opacity:1;transform:translateY(0) scale(1)}
+}
+
+.criartista-assistant-popover-head{
+  min-height:72px;
+  padding:14px 14px 13px;
+  display:grid;
+  grid-template-columns:44px minmax(0,1fr) 28px;
+  align-items:center;
+  gap:11px;
+  background:var(--assistant-purple);
+  color:#fff;
+}
+
+.criartista-assistant-mini-brand{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+  display:grid;
+  place-items:center;
+  background:rgba(255,255,255,.08);
+}
+
+.criartista-assistant-mini-brand img{
+  width:19px;
+  height:36px;
+  object-fit:contain;
+}
+
+.criartista-assistant-popover-head>div:nth-child(2){
+  min-width:0;
+  display:grid;
+  gap:3px;
+}
+
+.criartista-assistant-popover-head span{
+  color:rgba(255,255,255,.62);
+  font-size:.6rem;
+  font-weight:800;
+  letter-spacing:.1em;
+  text-transform:uppercase;
+}
+
+.criartista-assistant-popover-head strong{
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  font-size:.88rem;
+  font-weight:800;
+}
+
+.criartista-assistant-close{
+  width:28px;
+  height:28px;
+  border:0;
+  border-radius:8px;
+  background:transparent;
+  color:rgba(255,255,255,.7);
+  font-size:1.15rem;
+  cursor:pointer;
+}
+
+.criartista-assistant-close:hover{
+  background:rgba(255,255,255,.1);
+  color:#fff;
+}
+
+.criartista-assistant-popover>p{
+  margin:0;
+  padding:16px 16px 12px;
+  color:#33283f;
+  font-size:.8rem;
+  line-height:1.55;
+}
+
+.criartista-assistant-actions{
+  padding:0 16px 14px;
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+}
+
+.criartista-assistant-actions a{
+  min-height:34px;
+  padding:0 11px;
+  border:1px solid rgba(50,16,100,.15);
+  border-radius:8px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#fff;
+  color:var(--assistant-purple);
+  font-size:.7rem;
+  font-weight:800;
+}
+
+.criartista-assistant-actions a:first-child{
+  border-color:var(--assistant-orange);
+  background:var(--assistant-orange);
+  color:#fff;
+}
+
+.criartista-assistant-popover>small{
+  display:block;
+  padding:9px 16px 10px;
+  border-top:1px solid rgba(50,16,100,.08);
+  background:var(--assistant-cream);
+  color:rgba(50,16,100,.62);
+  font-size:.6rem;
+  font-weight:800;
+  letter-spacing:.04em;
+}
+
+@media(max-width:760px){
+  .criartista-assistant{
+    right:12px;
+    bottom:12px;
+  }
+
+  .criartista-assistant-trigger{
+    min-width:50px;
+    height:50px;
+    padding:0 13px;
+    border-radius:15px;
+  }
+
+  .criartista-assistant-trigger span{
+    display:none;
+  }
+
+  .criartista-assistant-popover{
+    width:min(340px,calc(100vw - 24px));
+  }
+}
