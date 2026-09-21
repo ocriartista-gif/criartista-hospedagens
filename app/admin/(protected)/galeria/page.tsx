@@ -106,16 +106,6 @@ export default async function GalleryPage() {
         </div>
       </header>
 
-      <div className="integration-runtime-note">
-        <strong>Como usar as fotos</strong>
-        <span>
-          Para trocar o Hero ou as fotos das Experiências, vá em Conteúdo.
-          Para fotos de quartos, abra Acomodações. Logos e favicon ficam em
-          Identidade. As miniaturas desta biblioteca aparecem diretamente em
-          cada um desses lugares.
-        </span>
-      </div>
-
       <GalleryManager
         propertyId={membership.property_id}
         initialImages={images ?? []}
