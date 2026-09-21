@@ -217,6 +217,8 @@ export function BrandEditor({
                 uploadCategory="Marca"
                 libraryCategories={["Marca"]}
                 accept="image/png,image/webp,image/svg+xml,image/jpeg"
+                displayMode="brand"
+                uploadLabel="+ Enviar arquivo"
                 onSelectionChange={(paths) =>
                   set("logoMainPath", paths[0] ?? "")
                 }
@@ -233,6 +235,8 @@ export function BrandEditor({
                 uploadCategory="Marca"
                 libraryCategories={["Marca"]}
                 accept="image/png,image/webp,image/svg+xml,image/jpeg"
+                displayMode="brand"
+                uploadLabel="+ Enviar arquivo"
                 onSelectionChange={(paths) =>
                   set("logoLightPath", paths[0] ?? "")
                 }
@@ -249,6 +253,8 @@ export function BrandEditor({
                 uploadCategory="Favicon"
                 libraryCategories={["Favicon"]}
                 accept="image/png,image/svg+xml,image/x-icon,image/vnd.microsoft.icon"
+                displayMode="brand"
+                uploadLabel="+ Enviar arquivo"
                 onSelectionChange={(paths) =>
                   set("faviconPath", paths[0] ?? "")
                 }
