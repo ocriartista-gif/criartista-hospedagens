@@ -42,6 +42,13 @@ export default async function Home() {
     title: "O que faz você lembrar da viagem.",
     description: "",
   };
+  const experienceItems = experiences.items?.some((item) => item.title || item.description)
+    ? experiences.items
+    : [
+        { title: "Café da manhã artesanal", description: "Comece o dia sem pressa." },
+        { title: "Jardins e trilhas leves", description: "Natureza a poucos passos do quarto." },
+        { title: "Atendimento próximo", description: "Converse diretamente com quem cuida da pousada." },
+      ];
   const reviewSection = content.reviews ?? {
     eyebrow: "AVALIAÇÕES",
     title: "Quem vem, leva histórias.",
@@ -131,9 +138,12 @@ export default async function Home() {
           <h2>{experiences.title}</h2>
           {experiences.description && <p>{experiences.description}</p>}
           <div className="feature-grid">
-            <div><strong>Café da manhã artesanal</strong><p>Comece o dia sem pressa.</p></div>
-            <div><strong>Jardins e trilhas leves</strong><p>Natureza a poucos passos do quarto.</p></div>
-            <div><strong>Atendimento próximo</strong><p>Converse diretamente com quem cuida da pousada.</p></div>
+            {experienceItems.map((item, index) => (
+              <div key={`${item.title}-${index}`}>
+                <strong>{item.title}</strong>
+                <p>{item.description}</p>
+              </div>
+            ))}
           </div>
         </div>
       </section>
