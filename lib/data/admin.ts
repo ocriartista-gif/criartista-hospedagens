@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { PropertyTheme } from "@/types";
 
@@ -26,7 +27,7 @@ const fallbackTheme: PropertyTheme = {
   ctaSurfaceKey: "primary",
 };
 
-export async function getAdminContext() {
+export async function getAdminContext(allowedRoles?: readonly string[]) {
   const supabase = await createClient();
 
   const { data: claimsData, error: claimsError } = await supabase.auth.getClaims();
@@ -45,6 +46,10 @@ export async function getAdminContext() {
 
   if (membershipError || !membership) {
     throw new Error("Admin user has no property membership.");
+  }
+
+  if (allowedRoles && !allowedRoles.includes(membership.role)) {
+    redirect("/admin");
   }
 
   const [{ data: property, error: propertyError }, { data: themeRow }] =
