@@ -79,7 +79,7 @@ function refreshLeadPaths(id: string) {
 }
 
 export async function updateLead(formData: FormData) {
-  const { supabase, membership, property } = await getAdminContext();
+  const { supabase, membership, property } = await getAdminContext(["owner", "manager", "reservations", "technical_admin"]);
   const id = text(formData, "id");
   const status = text(formData, "status") || "novo";
   const assignedTo = text(formData, "assignedTo") || null;
@@ -131,7 +131,7 @@ export async function updateLead(formData: FormData) {
 }
 
 export async function registerContactNow(formData: FormData) {
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "reservations", "technical_admin"]);
   const id = text(formData, "id");
 
   const { data: current, error: readError } = await supabase
@@ -161,7 +161,7 @@ export async function registerContactNow(formData: FormData) {
 }
 
 export async function addLeadNote(formData: FormData) {
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "reservations", "technical_admin"]);
   const id = text(formData, "id");
   const note = text(formData, "note");
 
