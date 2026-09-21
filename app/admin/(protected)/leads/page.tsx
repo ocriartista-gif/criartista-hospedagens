@@ -240,7 +240,7 @@ export default async function LeadsPage({
     ? (requestedView as ViewKey)
     : "atender";
 
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "reservations", "technical_admin"]);
 
   const [
     { data: queue, error },
