@@ -10,6 +10,7 @@ export type PublicContent = Record<string, {
   title: string;
   description: string;
   image?: string;
+  items?: Array<{ title: string; description: string }>;
 }>;
 
 export type PublicSiteData = {
@@ -72,6 +73,19 @@ function mapContent(rows: ContentRow[]): PublicContent {
         typeof extra.hero_image === "string" && extra.hero_image
           ? extra.hero_image
           : undefined;
+      const items = Array.isArray(extra.items)
+        ? extra.items
+            .filter(
+              (item): item is Record<string, unknown> =>
+                Boolean(item) && typeof item === "object" && !Array.isArray(item)
+            )
+            .slice(0, 3)
+            .map((item) => ({
+              title: typeof item.title === "string" ? item.title : "",
+              description:
+                typeof item.description === "string" ? item.description : "",
+            }))
+        : undefined;
 
       return [
         row.section_key,
@@ -80,6 +94,7 @@ function mapContent(rows: ContentRow[]): PublicContent {
           title: row.title ?? "",
           description: row.description ?? "",
           image: imagePath ? imageUrl(imagePath) : undefined,
+          items,
         },
       ];
     })
