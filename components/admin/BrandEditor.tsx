@@ -177,7 +177,7 @@ export function BrandEditor({
   }
 
   return (
-    <form action={updateBrandIdentity}>
+    <form action={updateBrandIdentity} className="brand-editor-form">
       <div className="brand-editor-toolbar">
         <div>
           <strong>Proteção de contraste ativa</strong>
