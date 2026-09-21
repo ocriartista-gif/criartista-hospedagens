@@ -2498,7 +2498,6 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
   object-fit:contain;
   display:block;
   flex:0 0 auto;
-  filter:brightness(0) invert(1);
   opacity:1;
 }
 
