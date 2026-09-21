@@ -2497,6 +2497,9 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
   height:38px;
   object-fit:contain;
   display:block;
+  flex:0 0 auto;
+  filter:brightness(0) invert(1);
+  opacity:1;
 }
 
 .criartista-assistant-trigger span{
@@ -2557,6 +2560,9 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
   width:19px;
   height:36px;
   object-fit:contain;
+  display:block;
+  filter:brightness(0) invert(1);
+  opacity:1;
 }
 
 .criartista-assistant-popover-head>div:nth-child(2){
