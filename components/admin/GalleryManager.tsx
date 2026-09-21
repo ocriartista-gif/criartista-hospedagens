@@ -3,6 +3,11 @@
 import { FormEvent, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
+import {
+  MEDIA_CATEGORIES,
+  normalizeMediaCategory,
+  type MediaCategory,
+} from "@/lib/media-categories";
 
 type GalleryImage = {
   id: string;
@@ -54,25 +59,15 @@ export function GalleryManager({
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
   const [search, setSearch] = useState("");
-  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [categoryFilter, setCategoryFilter] = useState<"all" | MediaCategory>("all");
   const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
 
-  const categories = useMemo(() => {
-    const values = new Set<string>(["Geral"]);
-
-    for (const image of images) {
-      const category = image.category?.trim();
-      if (category) values.add(category);
-    }
-
-    return [...values].sort((a, b) => a.localeCompare(b, "pt-BR"));
-  }, [images]);
 
   const filteredImages = useMemo(() => {
     const query = normalizeSearch(search);
 
     return images.filter((image) => {
-      const category = image.category?.trim() || "Geral";
+      const category = normalizeMediaCategory(image.category);
       const isInUse = inUsePaths.includes(image.storage_path);
 
       const matchesSearch =
@@ -122,8 +117,9 @@ export function GalleryManager({
       .filter(
         (value): value is File => value instanceof File && value.size > 0
       );
-    const uploadCategory =
-      String(form.get("uploadCategory") ?? "").trim() || "Geral";
+    const uploadCategory = normalizeMediaCategory(
+      String(form.get("uploadCategory") ?? "Geral")
+    );
 
     if (!files.length) {
       setMessage("Selecione pelo menos uma imagem.");
@@ -216,7 +212,9 @@ export function GalleryManager({
     const payload = {
       alt_text: String(form.get("altText") ?? "").trim() || null,
       caption: String(form.get("caption") ?? "").trim() || null,
-      category: String(form.get("category") ?? "").trim() || null,
+      category: normalizeMediaCategory(
+        String(form.get("category") ?? "Geral")
+      ),
       sort_order: Number(form.get("sortOrder") ?? 0) || 0,
       published: form.get("published") === "on",
     };
@@ -281,17 +279,6 @@ export function GalleryManager({
 
   return (
     <>
-      <datalist id="gallery-category-options">
-        {categories.map((category) => (
-          <option key={category} value={category} />
-        ))}
-        <option value="Hero" />
-        <option value="Acomodações" />
-        <option value="Experiências" />
-        <option value="Marca" />
-        <option value="Favicon" />
-      </datalist>
-
       <section className="admin-panel gallery-upload-panel">
         <div>
           <span className="eyebrow">Upload</span>
@@ -304,13 +291,17 @@ export function GalleryManager({
 
         <form className="gallery-upload-form" onSubmit={upload}>
           <label className="gallery-upload-category">
-            Categoria
-            <input
-              name="uploadCategory"
-              list="gallery-category-options"
-              defaultValue="Geral"
-              placeholder="Geral"
-            />
+            Organizar em
+            <select name="uploadCategory" defaultValue="Geral">
+              {MEDIA_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            <small>
+              Isso só organiza a Biblioteca; não publica a imagem em nenhuma seção.
+            </small>
           </label>
           <input
             type="file"
@@ -355,18 +346,20 @@ export function GalleryManager({
                 type="search"
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Nome, legenda, categoria..."
+                placeholder="Nome ou legenda da imagem..."
               />
             </label>
 
             <label>
-              Categoria
+              Grupo
               <select
                 value={categoryFilter}
-                onChange={(event) => setCategoryFilter(event.target.value)}
+                onChange={(event) =>
+                  setCategoryFilter(event.target.value as "all" | MediaCategory)
+                }
               >
-                <option value="all">Todas</option>
-                {categories.map((category) => (
+                <option value="all">Todos os grupos</option>
+                {MEDIA_CATEGORIES.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>
@@ -375,16 +368,16 @@ export function GalleryManager({
             </label>
 
             <label>
-              Situação
+              Uso
               <select
                 value={usageFilter}
                 onChange={(event) =>
                   setUsageFilter(event.target.value as UsageFilter)
                 }
               >
-                <option value="all">Todas</option>
-                <option value="in-use">Em uso</option>
-                <option value="available">Disponíveis</option>
+                <option value="all">Todos</option>
+                <option value="in-use">Em uso no site</option>
+                <option value="available">Livres para usar</option>
                 <option value="hidden">Ocultas</option>
               </select>
             </label>
@@ -399,33 +392,10 @@ export function GalleryManager({
             </button>
           </div>
 
-          <div className="media-category-chips" aria-label="Categorias da biblioteca">
-            <button
-              type="button"
-              className={categoryFilter === "all" ? "active" : ""}
-              onClick={() => setCategoryFilter("all")}
-            >
-              Todas
-              <span>{images.length}</span>
-            </button>
-            {categories.map((category) => {
-              const count = images.filter(
-                (image) => (image.category?.trim() || "Geral") === category
-              ).length;
-
-              return (
-                <button
-                  key={category}
-                  type="button"
-                  className={categoryFilter === category ? "active" : ""}
-                  onClick={() => setCategoryFilter(category)}
-                >
-                  {category}
-                  <span>{count}</span>
-                </button>
-              );
-            })}
-          </div>
+          <p className="media-library-help">
+            <strong>Grupo</strong> organiza a Biblioteca. <strong>Uso</strong> mostra
+            se a imagem já está aplicada no site.
+          </p>
         </section>
       )}
 
@@ -478,13 +448,17 @@ export function GalleryManager({
 
               <div className="field-grid">
                 <label>
-                  Categoria
-                  <input
+                  Grupo
+                  <select
                     name="category"
-                    list="gallery-category-options"
-                    defaultValue={image.category ?? ""}
-                    placeholder="Geral"
-                  />
+                    defaultValue={normalizeMediaCategory(image.category)}
+                  >
+                    {MEDIA_CATEGORIES.map((category) => (
+                      <option key={category} value={category}>
+                        {category}
+                      </option>
+                    ))}
+                  </select>
                 </label>
 
                 <label>
