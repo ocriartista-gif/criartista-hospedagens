@@ -44,6 +44,13 @@ export type Property = {
   whatsapp: string;
   email: string;
   address: string;
+  mapsUrl: string;
+  timezone: string;
+  checkInTime: string;
+  checkOutTime: string;
+  childrenPolicy: string;
+  petsPolicy: string;
+  cancellationPolicy: string;
   theme: PropertyTheme;
 };
 
