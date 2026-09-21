@@ -83,15 +83,6 @@ export default async function IntegrationsPage({
         </div>
       )}
 
-      <div className="integration-runtime-note">
-        <strong>Estado desta V1</strong>
-        <span>
-          WhatsApp e redes sociais já atualizam o site. IDs de Analytics,
-          Pixel, GTM, Sheets, consentimento e motores externos são persistidos
-          aqui e serão executados pela camada técnica de integração.
-        </span>
-      </div>
-
       <div className="integration-settings-grid">
         <section className="admin-panel integration-settings-card">
           <div className="integration-card-title">
