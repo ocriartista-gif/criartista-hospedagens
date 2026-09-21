@@ -16,6 +16,20 @@ type BookingAreaProps = {
   };
 };
 
+function localDateValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function nextDate(value: string) {
+  if (!value) return "";
+  const date = new Date(`${value}T12:00:00`);
+  date.setDate(date.getDate() + 1);
+  return localDateValue(date);
+}
+
 export function BookingArea({
   propertyId,
   propertyWhatsapp,
@@ -26,6 +40,9 @@ export function BookingArea({
   const [state, setState] = useState<"idle" | "sending" | "sent">("idle");
   const [error, setError] = useState("");
   const [summary, setSummary] = useState("");
+  const [checkInValue, setCheckInValue] = useState("");
+  const today = useMemo(() => localDateValue(new Date()), []);
+  const minimumCheckOut = checkInValue ? nextDate(checkInValue) : today;
 
   const whatsappHref = useMemo(() => {
     const text = encodeURIComponent(
@@ -50,12 +67,44 @@ export function BookingArea({
     const name = String(form.get("name") ?? "").trim();
     const whatsapp = String(form.get("whatsapp") ?? "").trim();
     const email = String(form.get("email") ?? "").trim();
+    const whatsappDigits = whatsapp.replace(/\D/g, "");
 
     const start = new Date(`${checkIn}T12:00:00`);
     const end = new Date(`${checkOut}T12:00:00`);
-    const nights = Math.max(
-      1,
-      Math.round((end.getTime() - start.getTime()) / 86_400_000)
+    const todayDate = new Date(`${today}T00:00:00`);
+
+    if (!checkIn || !checkOut || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+      setError("Informe datas válidas para a estadia.");
+      setState("idle");
+      return;
+    }
+
+    if (start < todayDate) {
+      setError("O check-in não pode estar no passado.");
+      setState("idle");
+      return;
+    }
+
+    if (end <= start) {
+      setError("O check-out precisa ser posterior ao check-in.");
+      setState("idle");
+      return;
+    }
+
+    if (name.length < 2) {
+      setError("Informe seu nome.");
+      setState("idle");
+      return;
+    }
+
+    if (whatsappDigits.length < 10 || whatsappDigits.length > 13) {
+      setError("Informe um WhatsApp válido com DDD.");
+      setState("idle");
+      return;
+    }
+
+    const nights = Math.round(
+      (end.getTime() - start.getTime()) / 86_400_000
     );
 
     const params = new URLSearchParams(window.location.search);
@@ -64,7 +113,7 @@ export function BookingArea({
     const { error: insertError } = await supabase.from("leads").insert({
       property_id: propertyId,
       name,
-      whatsapp,
+      whatsapp: whatsappDigits,
       email: email || null,
       check_in: checkIn,
       check_out: checkOut,
@@ -118,11 +167,18 @@ export function BookingArea({
         <form className="booking-form" onSubmit={submit}>
           <label>
             Check-in
-            <input required type="date" name="checkIn" />
+            <input
+              required
+              type="date"
+              name="checkIn"
+              min={today}
+              value={checkInValue}
+              onChange={(event) => setCheckInValue(event.target.value)}
+            />
           </label>
           <label>
             Check-out
-            <input required type="date" name="checkOut" />
+            <input required type="date" name="checkOut" min={minimumCheckOut} />
           </label>
           <label>
             Adultos
@@ -151,15 +207,21 @@ export function BookingArea({
           </label>
           <label>
             Nome
-            <input required name="name" placeholder="Seu nome" />
+            <input required name="name" autoComplete="name" placeholder="Seu nome" />
           </label>
           <label>
             WhatsApp
-            <input required name="whatsapp" placeholder="(19) 99999-9999" />
+            <input
+              required
+              name="whatsapp"
+              inputMode="tel"
+              autoComplete="tel"
+              placeholder="(19) 99999-9999"
+            />
           </label>
           <label>
             E-mail
-            <input type="email" name="email" placeholder="voce@email.com" />
+            <input type="email" name="email" autoComplete="email" placeholder="voce@email.com" />
           </label>
           <button
             className="button button-primary"
@@ -168,7 +230,7 @@ export function BookingArea({
           >
             {state === "sending" ? "Enviando..." : "Consultar"}
           </button>
-          {error && <p className="form-error">{error}</p>}
+          {error && <p className="form-error" role="alert">{error}</p>}
         </form>
       )}
     </section>
