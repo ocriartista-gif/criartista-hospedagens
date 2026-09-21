@@ -2,6 +2,7 @@
 
 import { ChangeEvent, useMemo, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { normalizeMediaCategory } from "@/lib/media-categories";
 
 export type MediaLibraryItem = {
   id: string;
@@ -63,7 +64,7 @@ export function MediaPicker({
     () =>
       libraryCategories?.length
         ? initialLibrary.filter((item) =>
-            item.category ? libraryCategories.includes(item.category) : false
+            libraryCategories.includes(normalizeMediaCategory(item.category))
           )
         : initialLibrary,
     [initialLibrary, libraryCategories]
@@ -173,7 +174,7 @@ export function MediaPicker({
             storage_path: path,
             alt_text: fileLabel(file.name),
             caption: null,
-            category: uploadCategory,
+            category: normalizeMediaCategory(uploadCategory),
             sort_order: order,
             published: true,
           })
@@ -316,9 +317,9 @@ export function MediaPicker({
                     : `Selecionada ${selectedIndex + 1}`
                   : "Selecionar"}
               </span>
-              {(image.caption || image.category) && (
-                <small>{image.caption || image.category}</small>
-              )}
+              <small>
+                {image.caption || image.alt_text || "Imagem da biblioteca"}
+              </small>
             </button>
           );
         })}
