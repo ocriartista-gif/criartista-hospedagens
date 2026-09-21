@@ -2979,3 +2979,65 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
     padding:34px 22px 42px;
   }
 }
+
+
+/* --- Campo de senha acessível do login --- */
+.criartista-password-field{
+  position:relative;
+  display:block;
+}
+
+.criartista-password-field input{
+  padding-right:108px;
+}
+
+.criartista-password-toggle{
+  position:absolute;
+  top:50%;
+  right:7px;
+  min-width:94px;
+  height:40px;
+  padding:0 10px;
+  transform:translateY(-50%);
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  border:0;
+  border-radius:9px;
+  background:transparent;
+  color:var(--login-purple);
+  font-size:.72rem;
+  font-weight:900;
+  cursor:pointer;
+  transition:background .16s ease,color .16s ease;
+}
+
+.criartista-password-toggle:hover{
+  background:rgba(50,16,100,.07);
+}
+
+.criartista-password-toggle:focus-visible{
+  outline:3px solid rgba(255,98,0,.32);
+  outline-offset:1px;
+}
+
+.criartista-password-toggle svg{
+  flex:0 0 auto;
+}
+
+@media(max-width:420px){
+  .criartista-password-toggle{
+    min-width:44px;
+    width:44px;
+    padding:0;
+  }
+
+  .criartista-password-toggle span{
+    display:none;
+  }
+
+  .criartista-password-field input{
+    padding-right:58px;
+  }
+}
