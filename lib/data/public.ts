@@ -10,7 +10,7 @@ export type PublicContent = Record<string, {
   title: string;
   description: string;
   image?: string;
-  items?: Array<{ title: string; description: string }>;
+  items?: Array<{ title: string; description: string; image?: string }>;
 }>;
 
 export type PublicSiteData = {
@@ -80,11 +80,19 @@ function mapContent(rows: ContentRow[]): PublicContent {
                 Boolean(item) && typeof item === "object" && !Array.isArray(item)
             )
             .slice(0, 3)
-            .map((item) => ({
-              title: typeof item.title === "string" ? item.title : "",
-              description:
-                typeof item.description === "string" ? item.description : "",
-            }))
+            .map((item) => {
+              const itemImage =
+                typeof item.image === "string" && item.image
+                  ? imageUrl(item.image)
+                  : undefined;
+
+              return {
+                title: typeof item.title === "string" ? item.title : "",
+                description:
+                  typeof item.description === "string" ? item.description : "",
+                image: itemImage,
+              };
+            })
         : undefined;
 
       return [
