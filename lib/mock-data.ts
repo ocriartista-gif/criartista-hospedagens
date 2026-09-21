@@ -11,6 +11,13 @@ export const property: Property = {
   whatsapp: "5519999999999",
   email: "reservas@villaipe.demo",
   address: "Interior de São Paulo",
+  mapsUrl: "",
+  timezone: "America/Sao_Paulo",
+  checkInTime: "15:00",
+  checkOutTime: "12:00",
+  childrenPolicy: "",
+  petsPolicy: "",
+  cancellationPolicy: "",
   theme: {
     primary: "#183B2A",
     secondary: "#8CA67C",
