@@ -4,10 +4,26 @@ import type { Json } from "@/types/database";
 
 export const dynamic = "force-dynamic";
 
+function extraObject(extra: Json): Record<string, Json | undefined> {
+  return extra && typeof extra === "object" && !Array.isArray(extra)
+    ? (extra as Record<string, Json | undefined>)
+    : {};
+}
+
 function heroImage(extra: Json) {
-  if (!extra || typeof extra !== "object" || Array.isArray(extra)) return null;
-  const value = (extra as Record<string, Json | undefined>).hero_image;
+  const value = extraObject(extra).hero_image;
   return typeof value === "string" && value ? value : null;
+}
+
+function experienceImages(extra: Json) {
+  const items = extraObject(extra).items;
+  if (!Array.isArray(items)) return [];
+
+  return items.flatMap((item) => {
+    if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+    const image = (item as Record<string, Json | undefined>).image;
+    return typeof image === "string" && image ? [image] : [];
+  });
 }
 
 export default async function GalleryPage() {
@@ -66,6 +82,12 @@ export default async function GalleryPage() {
       const path = heroImage(section.extra);
       if (path) inUsePaths.add(path);
     }
+
+    if (section.section_key === "experiences") {
+      for (const path of experienceImages(section.extra)) {
+        inUsePaths.add(path);
+      }
+    }
   }
 
   if (theme?.logo_main_url) inUsePaths.add(theme.logo_main_url);
@@ -88,9 +110,10 @@ export default async function GalleryPage() {
       <div className="integration-runtime-note">
         <strong>Como usar as fotos</strong>
         <span>
-          Para trocar o Hero, vá em Conteúdo → Hero. Para fotos de quartos, abra
-          Acomodações. Logos e favicon ficam em Identidade. As miniaturas desta
-          biblioteca aparecem diretamente em cada um desses lugares.
+          Para trocar o Hero ou as fotos das Experiências, vá em Conteúdo.
+          Para fotos de quartos, abra Acomodações. Logos e favicon ficam em
+          Identidade. As miniaturas desta biblioteca aparecem diretamente em
+          cada um desses lugares.
         </span>
       </div>
 
