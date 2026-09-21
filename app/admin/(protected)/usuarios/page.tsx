@@ -137,7 +137,7 @@ export default async function UsersPage({
           <span className="eyebrow">Novo acesso</span>
           <h2>Convidar usuário</h2>
           <p>
-            O convidado receberá um código de 6 dígitos para ativar o acesso
+            O convidado receberá um código de acesso para ativar o painel
             e definir a senha.
           </p>
 
