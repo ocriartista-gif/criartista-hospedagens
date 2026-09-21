@@ -26,7 +26,7 @@ export default async function IntegrationsPage({
   searchParams: Promise<{ saved?: string }>;
 }) {
   const { saved } = await searchParams;
-  const { supabase, membership, property } = await getAdminContext();
+  const { supabase, membership, property } = await getAdminContext(["owner", "technical_admin"]);
 
   const [{ data: rows, error }, { data: social, error: socialError }] =
     await Promise.all([
