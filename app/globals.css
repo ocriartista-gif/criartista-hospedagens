@@ -1621,3 +1621,82 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
     justify-content:center;
   }
 }
+
+/* --- Admin white-label: sidebar acompanha a identidade do cliente --- */
+.admin-shell-v2 .admin-sidebar{
+  background:var(--brand-primary);
+  color:var(--brand-on-primary);
+}
+
+.admin-shell-v2 .admin-brand{
+  border-bottom-color:color-mix(in srgb,var(--brand-on-primary) 18%,transparent);
+}
+
+.admin-shell-v2 .admin-brand span,
+.admin-shell-v2 .admin-sidebar-section-label{
+  color:color-mix(in srgb,var(--brand-on-primary) 58%,transparent);
+}
+
+.admin-shell-v2 .admin-nav a,
+.admin-shell-v2 .admin-view-site,
+.admin-shell-v2 .admin-logout{
+  color:color-mix(in srgb,var(--brand-on-primary) 78%,transparent);
+}
+
+.admin-shell-v2 .admin-nav a:hover,
+.admin-shell-v2 .admin-view-site:hover,
+.admin-shell-v2 .admin-logout:hover{
+  color:var(--brand-on-primary);
+  background:color-mix(in srgb,var(--brand-on-primary) 10%,transparent);
+}
+
+.admin-shell-v2 .admin-nav a.active{
+  color:var(--brand-on-primary);
+  background:color-mix(in srgb,var(--brand-on-primary) 14%,transparent);
+  border-color:color-mix(in srgb,var(--brand-on-primary) 10%,transparent);
+  box-shadow:inset 3px 0 0 var(--brand-accent);
+}
+
+.admin-shell-v2 .admin-nav-icon{
+  color:color-mix(in srgb,var(--brand-on-primary) 68%,transparent);
+}
+
+.admin-shell-v2 .admin-nav a:hover .admin-nav-icon,
+.admin-shell-v2 .admin-view-site:hover .admin-nav-icon,
+.admin-shell-v2 .admin-logout:hover .admin-nav-icon{
+  color:var(--brand-on-primary);
+}
+
+.admin-shell-v2 .admin-nav a.active .admin-nav-icon{
+  color:var(--brand-on-primary);
+}
+
+.admin-shell-v2 .admin-sidebar-footer{
+  border-top-color:color-mix(in srgb,var(--brand-on-primary) 16%,transparent);
+}
+
+.admin-shell-v2 .admin-brand-logo{
+  width:auto;
+  max-width:164px;
+  max-height:46px;
+  object-fit:contain;
+  object-position:left center;
+}
+
+@media(max-width:1180px){
+  .admin-shell-v2 .admin-brand-logo{
+    max-width:48px;
+    max-height:38px;
+    object-position:center;
+  }
+}
+
+@media(max-width:760px){
+  .admin-shell-v2 .admin-brand{
+    border-right-color:color-mix(in srgb,var(--brand-on-primary) 16%,transparent);
+  }
+
+  .admin-shell-v2 .admin-sidebar-footer{
+    border-left-color:color-mix(in srgb,var(--brand-on-primary) 16%,transparent);
+  }
+}
