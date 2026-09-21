@@ -25,6 +25,8 @@ type Props = {
   libraryCategories?: string[];
   accept?: string;
   onSelectionChange?: (paths: string[]) => void;
+  displayMode?: "photo" | "brand";
+  uploadLabel?: string;
 };
 
 function cleanFileName(name: string) {
@@ -53,6 +55,8 @@ export function MediaPicker({
   libraryCategories,
   accept = "image/jpeg,image/png,image/webp,image/avif,image/svg+xml",
   onSelectionChange,
+  displayMode = "photo",
+  uploadLabel = "+ Enviar nova foto",
 }: Props) {
   const supabase = useMemo(() => createClient(), []);
   const filteredLibrary = useMemo(
@@ -211,7 +215,7 @@ export function MediaPicker({
   }
 
   return (
-    <div className="media-picker">
+    <div className={`media-picker ${displayMode === "brand" ? "media-picker-brand" : ""}`}>
       <input type="hidden" name={fieldName} value={JSON.stringify(selected)} />
 
       <div className="media-picker-heading">
@@ -221,7 +225,7 @@ export function MediaPicker({
         </div>
 
         <label className="button button-secondary media-upload-button">
-          {uploading ? "Enviando..." : "+ Enviar nova foto"}
+          {uploading ? "Enviando..." : uploadLabel}
           <input
             type="file"
             accept={accept}
