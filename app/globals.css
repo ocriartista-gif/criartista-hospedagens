@@ -658,3 +658,19 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
 @media(max-width:900px){
   .experience-admin-grid{grid-template-columns:1fr}
 }
+
+.password-requirements{
+  display:grid;
+  gap:3px;
+  margin-top:-4px;
+  padding:11px 12px;
+  border-radius:10px;
+  background:color-mix(in srgb,var(--brand-primary) 6%,#fff);
+  color:var(--muted);
+  font-size:.74rem;
+  line-height:1.45
+}
+.password-requirements strong{
+  color:var(--brand-text);
+  margin-bottom:2px
+}
