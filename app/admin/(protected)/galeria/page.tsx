@@ -11,7 +11,7 @@ function heroImage(extra: Json) {
 }
 
 export default async function GalleryPage() {
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
 
   const [
     { data: images, error },
