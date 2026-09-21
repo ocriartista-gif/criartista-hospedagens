@@ -45,9 +45,9 @@ export default async function Home() {
   const experienceItems = experiences.items?.some((item) => item.title || item.description)
     ? experiences.items
     : [
-        { title: "Café da manhã artesanal", description: "Comece o dia sem pressa." },
-        { title: "Jardins e trilhas leves", description: "Natureza a poucos passos do quarto." },
-        { title: "Atendimento próximo", description: "Converse diretamente com quem cuida da pousada." },
+        { title: "Café da manhã artesanal", description: "Comece o dia sem pressa.", image: undefined },
+        { title: "Jardins e trilhas leves", description: "Natureza a poucos passos do quarto.", image: undefined },
+        { title: "Atendimento próximo", description: "Converse diretamente com quem cuida da pousada.", image: undefined },
       ];
   const reviewSection = content.reviews ?? {
     eyebrow: "AVALIAÇÕES",
@@ -157,12 +157,24 @@ export default async function Home() {
           <span className="eyebrow">{experiences.eyebrow}</span>
           <h2>{experiences.title}</h2>
           {experiences.description && <p>{experiences.description}</p>}
-          <div className="feature-grid">
+          <div className="feature-grid experience-grid">
             {experienceItems.map((item, index) => (
-              <div key={`${item.title}-${index}`}>
-                <strong>{item.title}</strong>
-                <p>{item.description}</p>
-              </div>
+              <article
+                className={`experience-card ${item.image ? "has-image" : "text-only"}`}
+                key={`${item.title}-${index}`}
+              >
+                {item.image && (
+                  <img
+                    className="experience-image"
+                    src={item.image}
+                    alt={item.title || "Experiência da hospedagem"}
+                  />
+                )}
+                <div className="experience-copy">
+                  <strong>{item.title}</strong>
+                  <p>{item.description}</p>
+                </div>
+              </article>
             ))}
           </div>
         </div>
