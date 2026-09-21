@@ -2,7 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/admin/login/actions";
 import { AdminIcon, AdminNav, type AdminIconName } from "@/components/admin/AdminNav";
 import { getAdminContext } from "@/lib/data/admin";
-import { themeStyle } from "@/lib/theme";
+import { isDarkColor, themeStyle } from "@/lib/theme";
 
 type NavItem = {
   href: string;
@@ -93,14 +93,19 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
     membership.email?.split("@")[0] ||
     "Usuário";
 
+  const sidebarUsesDarkSurface = isDarkColor(theme.primary);
+  const adminLogoUrl = sidebarUsesDarkSurface
+    ? theme.logoLightUrl || theme.logoMainUrl
+    : theme.logoMainUrl || theme.logoLightUrl;
+
   return (
     <div className="admin-shell admin-shell-v2" style={themeStyle(theme)}>
       <aside className="admin-sidebar">
         <div className="admin-brand">
-          {theme.logoLightUrl ? (
+          {adminLogoUrl ? (
             <img
               className="admin-brand-logo"
-              src={theme.logoLightUrl}
+              src={adminLogoUrl}
               alt={property.name}
             />
           ) : (
