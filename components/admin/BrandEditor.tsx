@@ -5,6 +5,7 @@ import {
   resetLastBrandIdentity,
   updateBrandIdentity,
 } from "@/app/admin/(protected)/identidade/actions";
+import { AdminTabs } from "@/components/admin/AdminTabs";
 import {
   MediaPicker,
   type MediaLibraryItem,
@@ -197,6 +198,14 @@ export function BrandEditor({
 
       <div className="settings-columns">
         <section className="admin-panel brand-editor-panel">
+          <AdminTabs
+            tabs={[
+              { key: "marca", label: "Marca" },
+              { key: "cores", label: "Cores" },
+              { key: "aplicacao", label: "Aplicação" },
+              { key: "tipografia", label: "Tipografia" },
+            ]}
+          >
           <div className="brand-section">
             <span className="eyebrow">Arquivos da marca</span>
             <h2>Logotipos e favicon</h2>
@@ -442,6 +451,8 @@ export function BrandEditor({
               </label>
             </div>
           </div>
+
+          </AdminTabs>
 
           <div className="form-actions">
             <button
