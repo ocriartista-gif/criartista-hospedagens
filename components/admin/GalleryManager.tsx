@@ -182,7 +182,7 @@ export function GalleryManager({
         order += 1;
       }
 
-      setImages((current) => [...current, ...created]);
+      setImages((current) => [...created.reverse(), ...current]);
       setCategoryFilter("all");
       setUsageFilter("all");
       setSearch("");
@@ -215,7 +215,6 @@ export function GalleryManager({
       category: normalizeMediaCategory(
         String(form.get("category") ?? "Geral")
       ),
-      sort_order: Number(form.get("sortOrder") ?? 0) || 0,
       published: form.get("published") === "on",
     };
 
@@ -233,9 +232,7 @@ export function GalleryManager({
     }
 
     setImages((current) =>
-      current
-        .map((image) => (image.id === id ? data : image))
-        .sort((a, b) => a.sort_order - b.sort_order)
+      current.map((image) => (image.id === id ? data : image))
     );
     setMessage("Imagem atualizada.");
     router.refresh();
@@ -394,7 +391,7 @@ export function GalleryManager({
 
           <p className="media-library-help">
             <strong>Grupo</strong> organiza a Biblioteca. <strong>Uso</strong> mostra
-            se a imagem já está aplicada no site.
+            se a imagem já está aplicada no site. Os arquivos mais recentes aparecem primeiro.
           </p>
         </section>
       )}
@@ -424,29 +421,39 @@ export function GalleryManager({
               </span>
             </div>
 
-            <form
-              className="gallery-library-form"
-              onSubmit={(event) => updateImage(event, image.id)}
-            >
-              <label>
-                Texto alternativo
-                <input
-                  name="altText"
-                  defaultValue={image.alt_text ?? ""}
-                  placeholder="Descreva a imagem"
-                />
-              </label>
+            <div className="gallery-card-summary">
+              <div>
+                <strong>{image.caption || image.alt_text || "Imagem sem nome"}</strong>
+                <span>{normalizeMediaCategory(image.category)}</span>
+              </div>
+            </div>
 
-              <label>
-                Legenda
-                <input
-                  name="caption"
-                  defaultValue={image.caption ?? ""}
-                  placeholder="Legenda opcional"
-                />
-              </label>
+            <details className="gallery-card-details">
+              <summary>Editar detalhes</summary>
 
-              <div className="field-grid">
+              <form
+                className="gallery-library-form"
+                onSubmit={(event) => updateImage(event, image.id)}
+              >
+                <label>
+                  Texto alternativo
+                  <input
+                    name="altText"
+                    defaultValue={image.alt_text ?? ""}
+                    placeholder="Descreva a imagem"
+                  />
+                  <small>Ajuda acessibilidade e SEO.</small>
+                </label>
+
+                <label>
+                  Legenda
+                  <input
+                    name="caption"
+                    defaultValue={image.caption ?? ""}
+                    placeholder="Legenda opcional"
+                  />
+                </label>
+
                 <label>
                   Grupo
                   <select
@@ -461,47 +468,37 @@ export function GalleryManager({
                   </select>
                 </label>
 
-                <label>
-                  Ordem
+                <label className="checkbox-field">
                   <input
-                    type="number"
-                    min="0"
-                    name="sortOrder"
-                    defaultValue={image.sort_order}
+                    type="checkbox"
+                    name="published"
+                    defaultChecked={image.published}
                   />
+                  Disponível para seleção no site
                 </label>
-              </div>
 
-              <label className="checkbox-field">
-                <input
-                  type="checkbox"
-                  name="published"
-                  defaultChecked={image.published}
-                />
-                Disponível para uso no site
-              </label>
-
-              <div className="gallery-card-actions">
-                <button className="button button-secondary" type="submit">
-                  Salvar
-                </button>
-                <button
-                  className="button button-danger"
-                  type="button"
-                  onClick={() => removeImage(image)}
-                  disabled={inUsePaths.includes(image.storage_path)}
-                  title={
-                    inUsePaths.includes(image.storage_path)
-                      ? "Remova esta foto da seção ou acomodação antes de excluí-la."
-                      : "Remover da biblioteca"
-                  }
-                >
-                  {inUsePaths.includes(image.storage_path)
-                    ? "Em uso"
-                    : "Remover"}
-                </button>
-              </div>
-            </form>
+                <div className="gallery-card-actions">
+                  <button className="button button-primary" type="submit">
+                    Salvar detalhes
+                  </button>
+                  <button
+                    className="button button-danger"
+                    type="button"
+                    onClick={() => removeImage(image)}
+                    disabled={inUsePaths.includes(image.storage_path)}
+                    title={
+                      inUsePaths.includes(image.storage_path)
+                        ? "Remova esta foto da seção ou acomodação antes de excluí-la."
+                        : "Remover da biblioteca"
+                    }
+                  >
+                    {inUsePaths.includes(image.storage_path)
+                      ? "Imagem em uso"
+                      : "Excluir"}
+                  </button>
+                </div>
+              </form>
+            </details>
           </article>
         ))}
       </div>
