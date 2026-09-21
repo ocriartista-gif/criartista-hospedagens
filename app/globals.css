@@ -622,3 +622,17 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
 }
 .brand-mini-footer strong{font-family:var(--heading-font)}
 .brand-mini-footer small{opacity:.72}
+
+/* --- Fechamento V1: estados públicos seguros --- */
+.public-image-placeholder{
+  min-height:190px;width:100%;display:grid;place-items:center;
+  background:color-mix(in srgb,var(--brand-primary) 8%,var(--brand-background));
+  color:var(--muted);font-size:.8rem;font-weight:800;letter-spacing:.04em
+}
+.room-gallery .public-image-placeholder{min-height:420px;height:100%}
+.location-action{
+  min-height:230px;padding:28px;border-radius:16px;
+  background:color-mix(in srgb,var(--brand-primary) 7%,var(--brand-background));
+  display:grid;align-content:center;justify-items:start;gap:18px
+}
+.location-action strong{font-family:var(--heading-font);font-size:1.2rem}
