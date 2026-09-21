@@ -78,7 +78,12 @@ export default async function LeadDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, membership, property } = await getAdminContext();
+  const { supabase, membership, property } = await getAdminContext([
+    "owner",
+    "manager",
+    "reservations",
+    "technical_admin",
+  ]);
 
   const [
     { data: lead, error },
