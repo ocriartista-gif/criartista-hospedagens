@@ -2,7 +2,7 @@ import Link from "next/link";
 import { getAdminContext } from "@/lib/data/admin";
 
 export default async function AdminAccommodations() {
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
 
   const { data: accommodations, error } = await supabase
     .from("accommodations")
