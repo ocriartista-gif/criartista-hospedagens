@@ -62,10 +62,21 @@ export async function updateContentSections(formData: FormData) {
 
   for (const sectionKey of sections) {
     const currentExtra = extraObject(currentExtras.get(sectionKey) ?? {});
-    const extra =
-      sectionKey === "hero"
-        ? { ...currentExtra, hero_image: heroImage }
-        : currentExtra;
+    let extra = currentExtra;
+
+    if (sectionKey === "hero") {
+      extra = { ...currentExtra, hero_image: heroImage };
+    }
+
+    if (sectionKey === "experiences") {
+      extra = {
+        ...currentExtra,
+        items: [1, 2, 3].map((index) => ({
+          title: text(formData, `experience_${index}_title`),
+          description: text(formData, `experience_${index}_description`),
+        })),
+      };
+    }
 
     const { error } = await supabase
       .from("content_sections")
