@@ -83,8 +83,23 @@ export default function AcceptInvitePage() {
       return;
     }
 
-    if (password.length < 8) {
-      setMessage("Use uma senha com pelo menos 8 caracteres.");
+    const passwordChecks = [
+      { ok: password.length >= 10, message: "pelo menos 10 caracteres" },
+      { ok: /[a-z]/.test(password), message: "uma letra minúscula" },
+      { ok: /[A-Z]/.test(password), message: "uma letra maiúscula" },
+      { ok: /\d/.test(password), message: "um número" },
+      {
+        ok: /[^A-Za-z0-9]/.test(password),
+        message: "um símbolo, como ! @ # $ % & *",
+      },
+    ];
+
+    const missingRequirement = passwordChecks.find((item) => !item.ok);
+
+    if (missingRequirement) {
+      setMessage(
+        `Sua senha precisa ter ${missingRequirement.message}.`
+      );
       return;
     }
 
@@ -196,18 +211,28 @@ export default function AcceptInvitePage() {
                 <input
                   name="password"
                   type="password"
-                  minLength={8}
+                  minLength={10}
+                  pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[^A-Za-z0-9]).{10,}"
+                  title="Use pelo menos 10 caracteres, com letra minúscula, maiúscula, número e símbolo."
                   required
                   autoComplete="new-password"
                 />
               </label>
+
+              <div className="password-requirements">
+                <strong>Use uma senha com:</strong>
+                <span>• pelo menos 10 caracteres</span>
+                <span>• letra minúscula e maiúscula</span>
+                <span>• pelo menos um número</span>
+                <span>• pelo menos um símbolo</span>
+              </div>
 
               <label>
                 Confirmar senha
                 <input
                   name="confirmPassword"
                   type="password"
-                  minLength={8}
+                  minLength={10}
                   required
                   autoComplete="new-password"
                 />
