@@ -74,6 +74,7 @@ function experienceItems(value: Json) {
       title: typeof item.title === "string" ? item.title : "",
       description:
         typeof item.description === "string" ? item.description : "",
+      image: typeof item.image === "string" ? item.image : "",
     }));
 }
 
@@ -205,7 +206,22 @@ export default async function ContentPage({
                 <div className="experience-admin-grid">
                   {[0, 1, 2].map((index) => (
                     <div className="experience-admin-item" key={index}>
-                      <strong>Experiência {index + 1}</strong>
+                      <div className="experience-admin-heading">
+                        <strong>Experiência {index + 1}</strong>
+                        <span>Foto opcional</span>
+                      </div>
+
+                      <MediaPicker
+                        propertyId={membership.property_id}
+                        fieldName={`experience_${index + 1}_media`}
+                        initialLibrary={mediaLibrary}
+                        initialSelected={items[index]?.image ? [items[index].image] : []}
+                        max={1}
+                        title="Foto da experiência"
+                        description="Escolha uma imagem da biblioteca ou envie uma nova."
+                        uploadCategory="Experiências"
+                      />
+
                       <label>
                         Título
                         <input
