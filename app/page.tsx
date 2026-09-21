@@ -160,7 +160,22 @@ export default async function Home() {
             <h2>{location.title}</h2>
             <p>{location.description}</p>
           </div>
-          <div className="map-placeholder">Mapa / Google Maps</div>
+          <div className="location-action">
+            <strong>{property.address || "Consulte a hospedagem para localização."}</strong>
+            {property.address && (
+              <a
+                className="button button-secondary"
+                href={
+                  property.mapsUrl ||
+                  `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.address)}`
+                }
+                target="_blank"
+                rel="noreferrer"
+              >
+                Abrir no Google Maps ↗
+              </a>
+            )}
+          </div>
         </div>
       </section>
 
@@ -175,7 +190,7 @@ export default async function Home() {
               <a key={label} href={href} target="_blank" rel="noreferrer">{label}</a>
             ))}
             {property.whatsapp && <a href={`https://wa.me/${property.whatsapp}`}>WhatsApp</a>}
-            <a href="/admin">Área administrativa</a>
+            {property.email && <a href={`mailto:${property.email}`}>E-mail</a>}
           </div>
         </div>
       </footer>
