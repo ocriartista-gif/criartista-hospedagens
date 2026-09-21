@@ -394,11 +394,17 @@ export type Database = {
       properties: {
         Row: {
           address: string | null
+          cancellation_policy: string | null
+          check_in_time: string
+          check_out_time: string
+          children_policy: string | null
           created_at: string
           description: string | null
           email: string | null
           id: string
+          maps_url: string | null
           name: string
+          pets_policy: string | null
           phone: string | null
           slug: string
           status: string
@@ -408,11 +414,17 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          cancellation_policy?: string | null
+          check_in_time?: string
+          check_out_time?: string
+          children_policy?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           id?: string
+          maps_url?: string | null
           name: string
+          pets_policy?: string | null
           phone?: string | null
           slug: string
           status?: string
@@ -422,11 +434,17 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          cancellation_policy?: string | null
+          check_in_time?: string
+          check_out_time?: string
+          children_policy?: string | null
           created_at?: string
           description?: string | null
           email?: string | null
           id?: string
+          maps_url?: string | null
           name?: string
+          pets_policy?: string | null
           phone?: string | null
           slug?: string
           status?: string
