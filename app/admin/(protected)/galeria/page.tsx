@@ -39,8 +39,7 @@ export default async function GalleryPage() {
       .from("gallery_images")
       .select("*")
       .eq("property_id", membership.property_id)
-      .order("sort_order")
-      .order("created_at"),
+      .order("created_at", { ascending: false }),
     supabase
       .from("accommodations")
       .select("id")
