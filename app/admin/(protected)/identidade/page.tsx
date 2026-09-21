@@ -13,7 +13,7 @@ export default async function BrandPage({
   }>;
 }) {
   const params = await searchParams;
-  const { supabase, membership, property } = await getAdminContext();
+  const { supabase, membership, property } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
 
   const [
     { data: theme, error },
