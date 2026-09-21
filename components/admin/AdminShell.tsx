@@ -1,13 +1,13 @@
 import Link from "next/link";
 import { logout } from "@/app/admin/login/actions";
-import { AdminNav } from "@/components/admin/AdminNav";
+import { AdminIcon, AdminNav, type AdminIconName } from "@/components/admin/AdminNav";
 import { getAdminContext } from "@/lib/data/admin";
 import { themeStyle } from "@/lib/theme";
 
 type NavItem = {
   href: string;
   label: string;
-  shortLabel: string;
+  icon: AdminIconName;
   roles: string[];
 };
 
@@ -15,61 +15,61 @@ const items: NavItem[] = [
   {
     href: "/admin",
     label: "Visão geral",
-    shortLabel: "VG",
+    icon: "overview",
     roles: ["owner", "manager", "reservations", "marketing", "technical_admin"],
   },
   {
     href: "/admin/leads",
     label: "Leads",
-    shortLabel: "LD",
+    icon: "leads",
     roles: ["owner", "manager", "reservations", "technical_admin"],
   },
   {
     href: "/admin/acomodacoes",
     label: "Acomodações",
-    shortLabel: "AC",
+    icon: "accommodations",
     roles: ["owner", "manager", "marketing", "technical_admin"],
   },
   {
     href: "/admin/galeria",
     label: "Galeria",
-    shortLabel: "GA",
+    icon: "gallery",
     roles: ["owner", "manager", "marketing", "technical_admin"],
   },
   {
     href: "/admin/conteudo",
     label: "Conteúdo",
-    shortLabel: "CO",
+    icon: "content",
     roles: ["owner", "manager", "marketing", "technical_admin"],
   },
   {
     href: "/admin/avaliacoes",
     label: "Avaliações",
-    shortLabel: "AV",
+    icon: "reviews",
     roles: ["owner", "manager", "marketing", "technical_admin"],
   },
   {
     href: "/admin/identidade",
     label: "Identidade",
-    shortLabel: "ID",
+    icon: "identity",
     roles: ["owner", "manager", "marketing", "technical_admin"],
   },
   {
     href: "/admin/integracoes",
     label: "Integrações",
-    shortLabel: "IN",
+    icon: "integrations",
     roles: ["owner", "technical_admin"],
   },
   {
     href: "/admin/usuarios",
     label: "Usuários",
-    shortLabel: "US",
+    icon: "users",
     roles: ["owner", "technical_admin"],
   },
   {
     href: "/admin/configuracoes",
     label: "Configurações",
-    shortLabel: "CF",
+    icon: "settings",
     roles: ["owner", "manager", "technical_admin"],
   },
 ];
@@ -86,7 +86,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
   const { property, theme, membership } = await getAdminContext();
   const visibleItems = items
     .filter((item) => item.roles.includes(membership.role))
-    .map(({ href, label, shortLabel }) => ({ href, label, shortLabel }));
+    .map(({ href, label, icon }) => ({ href, label, icon }));
 
   const displayName =
     membership.display_name?.trim() ||
@@ -114,13 +114,13 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
 
         <div className="admin-sidebar-footer">
           <Link className="admin-view-site" href="/" target="_blank">
-            <span className="admin-nav-mark" aria-hidden="true">↗</span>
+            <AdminIcon name="external" />
             <span>Ver site</span>
           </Link>
 
           <form action={logout}>
             <button className="admin-logout" type="submit">
-              <span className="admin-nav-mark" aria-hidden="true">↪</span>
+              <AdminIcon name="logout" />
               <span>Sair</span>
             </button>
           </form>
