@@ -65,6 +65,20 @@ export default async function Home() {
     description: "",
   };
 
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL ??
+    "https://criartista-hospedagens.vercel.app";
+  const lodgingJsonLd = {
+    "@context": "https://schema.org",
+    "@type": "LodgingBusiness",
+    name: property.name,
+    description: property.description || property.tagline,
+    url: siteUrl,
+    telephone: property.phone || property.whatsapp || undefined,
+    email: property.email || undefined,
+    address: property.address || undefined,
+  };
+
   const socialLinks = [
     social?.instagram && ["Instagram", social.instagram],
     social?.facebook && ["Facebook", social.facebook],
@@ -75,6 +89,12 @@ export default async function Home() {
 
   return (
     <main style={themeStyle(property.theme)}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(lodgingJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
       <SiteHeader property={property} />
 
       <section
