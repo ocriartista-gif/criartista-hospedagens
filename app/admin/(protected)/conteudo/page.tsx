@@ -62,6 +62,21 @@ function extraObject(value: Json): Record<string, Json | undefined> {
     : {};
 }
 
+function experienceItems(value: Json) {
+  if (!Array.isArray(value)) return [];
+  return value
+    .filter(
+      (item): item is Record<string, Json | undefined> =>
+        Boolean(item) && typeof item === "object" && !Array.isArray(item)
+    )
+    .slice(0, 3)
+    .map((item) => ({
+      title: typeof item.title === "string" ? item.title : "",
+      description:
+        typeof item.description === "string" ? item.description : "",
+    }));
+}
+
 export default async function ContentPage({
   searchParams,
 }: {
@@ -121,6 +136,10 @@ export default async function ContentPage({
             section.key === "hero" && typeof extra.hero_image === "string"
               ? extra.hero_image
               : "";
+          const items =
+            section.key === "experiences"
+              ? experienceItems(extra.items ?? [])
+              : [];
 
           return (
             <section className="admin-panel" key={section.key}>
@@ -181,6 +200,32 @@ export default async function ContentPage({
                   />
                 </label>
               </div>
+
+              {section.key === "experiences" && (
+                <div className="experience-admin-grid">
+                  {[0, 1, 2].map((index) => (
+                    <div className="experience-admin-item" key={index}>
+                      <strong>Experiência {index + 1}</strong>
+                      <label>
+                        Título
+                        <input
+                          name={`experience_${index + 1}_title`}
+                          defaultValue={items[index]?.title ?? ""}
+                          maxLength={100}
+                        />
+                      </label>
+                      <label>
+                        Descrição
+                        <textarea
+                          name={`experience_${index + 1}_description`}
+                          defaultValue={items[index]?.description ?? ""}
+                          maxLength={240}
+                        />
+                      </label>
+                    </div>
+                  ))}
+                </div>
+              )}
             </section>
           );
         })}
