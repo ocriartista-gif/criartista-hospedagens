@@ -1064,3 +1064,21 @@ body,main{background:var(--brand-background);color:var(--brand-text)}
     width:100%
   }
 }
+
+/* --- V1.1: biblioteca com taxonomia única --- */
+.gallery-upload-category small,
+.media-library-help{
+  color:var(--muted);
+  font-size:.72rem;
+  line-height:1.45
+}
+.gallery-upload-category select{
+  min-height:42px
+}
+.media-library-help{
+  margin:0;
+  padding-top:2px
+}
+.media-library-help strong{
+  color:var(--brand-text)
+}
