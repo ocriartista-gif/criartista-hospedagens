@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { logout } from "@/app/admin/login/actions";
 import { AdminIcon, AdminNav, type AdminIconName } from "@/components/admin/AdminNav";
+import { CriartistaAssistant } from "@/components/admin/CriartistaAssistant";
 import { getAdminContext } from "@/lib/data/admin";
 import { isDarkColor, themeStyle } from "@/lib/theme";
 
@@ -157,6 +158,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
         </header>
 
         <section className="admin-content">{children}</section>
+        <CriartistaAssistant />
       </div>
     </div>
   );
