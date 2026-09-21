@@ -5,7 +5,7 @@ import { createAccommodation } from "../actions";
 export const dynamic = "force-dynamic";
 
 export default async function NewAccommodationPage() {
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
 
   const { data: library, error } = await supabase
     .from("gallery_images")
