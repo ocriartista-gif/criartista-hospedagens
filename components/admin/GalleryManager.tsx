@@ -16,6 +16,8 @@ type GalleryImage = {
   created_at: string;
 };
 
+type UsageFilter = "all" | "in-use" | "available" | "hidden";
+
 function cleanFileName(name: string) {
   return name
     .normalize("NFD")
@@ -27,6 +29,14 @@ function cleanFileName(name: string) {
 
 function labelFromFile(name: string) {
   return name.replace(/\.[^.]+$/, "").replace(/[-_]+/g, " ").trim();
+}
+
+function normalizeSearch(value: string) {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim();
 }
 
 export function GalleryManager({
@@ -43,10 +53,62 @@ export function GalleryManager({
   const [images, setImages] = useState(initialImages);
   const [uploading, setUploading] = useState(false);
   const [message, setMessage] = useState("");
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [usageFilter, setUsageFilter] = useState<UsageFilter>("all");
+
+  const categories = useMemo(() => {
+    const values = new Set<string>(["Geral"]);
+
+    for (const image of images) {
+      const category = image.category?.trim();
+      if (category) values.add(category);
+    }
+
+    return [...values].sort((a, b) => a.localeCompare(b, "pt-BR"));
+  }, [images]);
+
+  const filteredImages = useMemo(() => {
+    const query = normalizeSearch(search);
+
+    return images.filter((image) => {
+      const category = image.category?.trim() || "Geral";
+      const isInUse = inUsePaths.includes(image.storage_path);
+
+      const matchesSearch =
+        !query ||
+        [
+          image.alt_text,
+          image.caption,
+          category,
+          image.storage_path.split("/").at(-1),
+        ].some((value) => normalizeSearch(value ?? "").includes(query));
+
+      const matchesCategory =
+        categoryFilter === "all" || category === categoryFilter;
+
+      const matchesUsage =
+        usageFilter === "all" ||
+        (usageFilter === "in-use" && isInUse) ||
+        (usageFilter === "available" && image.published && !isInUse) ||
+        (usageFilter === "hidden" && !image.published);
+
+      return matchesSearch && matchesCategory && matchesUsage;
+    });
+  }, [images, inUsePaths, search, categoryFilter, usageFilter]);
+
+  const hasActiveFilters =
+    Boolean(search.trim()) || categoryFilter !== "all" || usageFilter !== "all";
 
   function publicUrl(path: string) {
     if (/^https?:\/\//.test(path)) return path;
     return supabase.storage.from("property-media").getPublicUrl(path).data.publicUrl;
+  }
+
+  function clearFilters() {
+    setSearch("");
+    setCategoryFilter("all");
+    setUsageFilter("all");
   }
 
   async function upload(event: FormEvent<HTMLFormElement>) {
@@ -55,7 +117,13 @@ export function GalleryManager({
 
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const files = form.getAll("files").filter((value): value is File => value instanceof File && value.size > 0);
+    const files = form
+      .getAll("files")
+      .filter(
+        (value): value is File => value instanceof File && value.size > 0
+      );
+    const uploadCategory =
+      String(form.get("uploadCategory") ?? "").trim() || "Geral";
 
     if (!files.length) {
       setMessage("Selecione pelo menos uma imagem.");
@@ -63,7 +131,8 @@ export function GalleryManager({
     }
 
     const invalid = files.find(
-      (file) => !file.type.startsWith("image/") || file.size > 10 * 1024 * 1024
+      (file) =>
+        !file.type.startsWith("image/") || file.size > 10 * 1024 * 1024
     );
 
     if (invalid) {
@@ -80,7 +149,9 @@ export function GalleryManager({
       const created: GalleryImage[] = [];
 
       for (const file of files) {
-        const path = `${propertyId}/gallery/${crypto.randomUUID()}-${cleanFileName(file.name)}`;
+        const path = `${propertyId}/gallery/${crypto.randomUUID()}-${cleanFileName(
+          file.name
+        )}`;
 
         const { error: uploadError } = await supabase.storage
           .from("property-media")
@@ -99,7 +170,7 @@ export function GalleryManager({
             storage_path: path,
             alt_text: labelFromFile(file.name),
             caption: null,
-            category: "Geral",
+            category: uploadCategory,
             sort_order: order,
             published: true,
           })
@@ -116,6 +187,9 @@ export function GalleryManager({
       }
 
       setImages((current) => [...current, ...created]);
+      setCategoryFilter("all");
+      setUsageFilter("all");
+      setSearch("");
       setMessage(
         created.length === 1
           ? "Imagem adicionada à biblioteca."
@@ -207,6 +281,17 @@ export function GalleryManager({
 
   return (
     <>
+      <datalist id="gallery-category-options">
+        {categories.map((category) => (
+          <option key={category} value={category} />
+        ))}
+        <option value="Hero" />
+        <option value="Acomodações" />
+        <option value="Experiências" />
+        <option value="Marca" />
+        <option value="Favicon" />
+      </datalist>
+
       <section className="admin-panel gallery-upload-panel">
         <div>
           <span className="eyebrow">Upload</span>
@@ -218,6 +303,15 @@ export function GalleryManager({
         </div>
 
         <form className="gallery-upload-form" onSubmit={upload}>
+          <label className="gallery-upload-category">
+            Categoria
+            <input
+              name="uploadCategory"
+              list="gallery-category-options"
+              defaultValue="Geral"
+              placeholder="Geral"
+            />
+          </label>
           <input
             type="file"
             name="files"
@@ -241,8 +335,102 @@ export function GalleryManager({
         </div>
       )}
 
+      {images.length > 0 && (
+        <section className="admin-panel media-library-toolbar">
+          <div className="media-library-toolbar-heading">
+            <div>
+              <span className="eyebrow">Organização</span>
+              <h2>Encontrar arquivos</h2>
+            </div>
+            <span className="media-result-count">
+              {filteredImages.length} de {images.length}{" "}
+              {images.length === 1 ? "arquivo" : "arquivos"}
+            </span>
+          </div>
+
+          <div className="media-library-filters">
+            <label className="media-search-field">
+              Buscar
+              <input
+                type="search"
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Nome, legenda, categoria..."
+              />
+            </label>
+
+            <label>
+              Categoria
+              <select
+                value={categoryFilter}
+                onChange={(event) => setCategoryFilter(event.target.value)}
+              >
+                <option value="all">Todas</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {category}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              Situação
+              <select
+                value={usageFilter}
+                onChange={(event) =>
+                  setUsageFilter(event.target.value as UsageFilter)
+                }
+              >
+                <option value="all">Todas</option>
+                <option value="in-use">Em uso</option>
+                <option value="available">Disponíveis</option>
+                <option value="hidden">Ocultas</option>
+              </select>
+            </label>
+
+            <button
+              className="button button-secondary media-clear-filters"
+              type="button"
+              onClick={clearFilters}
+              disabled={!hasActiveFilters}
+            >
+              Limpar filtros
+            </button>
+          </div>
+
+          <div className="media-category-chips" aria-label="Categorias da biblioteca">
+            <button
+              type="button"
+              className={categoryFilter === "all" ? "active" : ""}
+              onClick={() => setCategoryFilter("all")}
+            >
+              Todas
+              <span>{images.length}</span>
+            </button>
+            {categories.map((category) => {
+              const count = images.filter(
+                (image) => (image.category?.trim() || "Geral") === category
+              ).length;
+
+              return (
+                <button
+                  key={category}
+                  type="button"
+                  className={categoryFilter === category ? "active" : ""}
+                  onClick={() => setCategoryFilter(category)}
+                >
+                  {category}
+                  <span>{count}</span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+
       <div className="gallery-library">
-        {images.map((image) => (
+        {filteredImages.map((image) => (
           <article className="gallery-library-card" key={image.id}>
             <div className="gallery-library-image">
               <img
@@ -293,6 +481,7 @@ export function GalleryManager({
                   Categoria
                   <input
                     name="category"
+                    list="gallery-category-options"
                     defaultValue={image.category ?? ""}
                     placeholder="Geral"
                   />
@@ -333,7 +522,9 @@ export function GalleryManager({
                       : "Remover da biblioteca"
                   }
                 >
-                  {inUsePaths.includes(image.storage_path) ? "Em uso" : "Remover"}
+                  {inUsePaths.includes(image.storage_path)
+                    ? "Em uso"
+                    : "Remover"}
                 </button>
               </div>
             </form>
@@ -344,6 +535,20 @@ export function GalleryManager({
       {!images.length && (
         <div className="admin-panel empty-state">
           A biblioteca ainda não possui imagens.
+        </div>
+      )}
+
+      {images.length > 0 && !filteredImages.length && (
+        <div className="admin-panel empty-state media-filter-empty">
+          <strong>Nenhum arquivo encontrado.</strong>
+          <span>Tente outro termo ou limpe os filtros aplicados.</span>
+          <button
+            className="button button-secondary"
+            type="button"
+            onClick={clearFilters}
+          >
+            Limpar filtros
+          </button>
         </div>
       )}
     </>
