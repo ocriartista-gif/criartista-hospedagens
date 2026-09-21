@@ -1,3 +1,4 @@
+import { AdminTabs } from "@/components/admin/AdminTabs";
 import { MediaPicker, type MediaLibraryItem } from "@/components/admin/MediaPicker";
 import { getAdminContext } from "@/lib/data/admin";
 import type { Json } from "@/types/database";
@@ -6,54 +7,14 @@ import { updateContentSections } from "./actions";
 export const dynamic = "force-dynamic";
 
 const sectionDefinitions = [
-  {
-    key: "hero",
-    label: "Hero da Home",
-    note: "Primeira mensagem da página. Mantenha curta e focada em desejo.",
-    media: true,
-  },
-  {
-    key: "intro",
-    label: "Apresentação da hospedagem",
-    note: "Contextualiza a experiência e o posicionamento da hospedagem.",
-    media: false,
-  },
-  {
-    key: "accommodations",
-    label: "Acomodações",
-    note: "Apresenta a seção; fotos, nomes e descrições dos quartos ficam em Acomodações.",
-    media: false,
-  },
-  {
-    key: "direct_booking",
-    label: "Reserva direta",
-    note: "Edita apenas a comunicação. Campos e fluxo de conversão permanecem protegidos.",
-    media: false,
-  },
-  {
-    key: "experiences",
-    label: "Experiências",
-    note: "Introdução para os diferenciais e experiências da propriedade.",
-    media: false,
-  },
-  {
-    key: "reviews",
-    label: "Avaliações",
-    note: "Texto de abertura da prova social. Os depoimentos ficam em Avaliações.",
-    media: false,
-  },
-  {
-    key: "location",
-    label: "Localização",
-    note: "Mensagem que acompanha endereço e mapa.",
-    media: false,
-  },
-  {
-    key: "footer",
-    label: "Rodapé",
-    note: "Assinatura final da marca no site.",
-    media: false,
-  },
+  { key: "hero", label: "Hero", note: "Primeira mensagem da página. Mantenha curta e focada em desejo.", media: true },
+  { key: "intro", label: "Apresentação", note: "Contextualiza a experiência e o posicionamento da hospedagem.", media: false },
+  { key: "accommodations", label: "Acomodações", note: "Apresenta a seção; fotos, nomes e descrições dos quartos ficam em Acomodações.", media: false },
+  { key: "direct_booking", label: "Reserva", note: "Edita apenas a comunicação. Campos e fluxo de conversão permanecem protegidos.", media: false },
+  { key: "experiences", label: "Experiências", note: "Introdução para os diferenciais e experiências da propriedade.", media: false },
+  { key: "reviews", label: "Avaliações", note: "Texto de abertura da prova social. Os depoimentos ficam em Avaliações.", media: false },
+  { key: "location", label: "Localização", note: "Mensagem que acompanha endereço e mapa.", media: false },
+  { key: "footer", label: "Rodapé", note: "Assinatura final da marca no site.", media: false },
 ] as const;
 
 function extraObject(value: Json): Record<string, Json | undefined> {
@@ -72,8 +33,7 @@ function experienceItems(value: Json) {
     .slice(0, 3)
     .map((item) => ({
       title: typeof item.title === "string" ? item.title : "",
-      description:
-        typeof item.description === "string" ? item.description : "",
+      description: typeof item.description === "string" ? item.description : "",
       image: typeof item.image === "string" ? item.image : "",
     }));
 }
@@ -84,7 +44,12 @@ export default async function ContentPage({
   searchParams: Promise<{ saved?: string }>;
 }) {
   const { saved } = await searchParams;
-  const { supabase, membership } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
+  const { supabase, membership } = await getAdminContext([
+    "owner",
+    "manager",
+    "marketing",
+    "technical_admin",
+  ]);
 
   const [{ data: rows, error }, { data: library, error: libraryError }] =
     await Promise.all([
@@ -112,11 +77,8 @@ export default async function ContentPage({
       <header className="admin-header">
         <div>
           <span className="eyebrow">Conteúdo</span>
-          <h1>Como a hospedagem fala.</h1>
-          <p>
-            Edite texto e mídia dentro da própria seção, sem mexer na estrutura
-            de conversão.
-          </p>
+          <h1>Conteúdo do site</h1>
+          <p>Edite uma seção por vez sem alterar a estrutura de conversão.</p>
         </div>
         <button className="button button-primary" type="submit">
           Salvar alterações
@@ -129,7 +91,12 @@ export default async function ContentPage({
         </div>
       )}
 
-      <div className="settings-stack">
+      <AdminTabs
+        tabs={sectionDefinitions.map((section) => ({
+          key: section.key,
+          label: section.label,
+        }))}
+      >
         {sectionDefinitions.map((section) => {
           const row = content.get(section.key);
           const extra = extraObject(row?.extra ?? {});
@@ -143,12 +110,10 @@ export default async function ContentPage({
               : [];
 
           return (
-            <section className="admin-panel" key={section.key}>
+            <section className="admin-panel content-editor-panel" key={section.key}>
               <div className="panel-heading content-panel-heading">
                 <div>
-                  <span className="eyebrow">
-                    {section.key.replaceAll("_", " ")}
-                  </span>
+                  <span className="eyebrow">Seção do site</span>
                   <h2>{section.label}</h2>
                 </div>
                 <span className="content-protected-label">
@@ -167,7 +132,7 @@ export default async function ContentPage({
                     initialSelected={heroImage ? [heroImage] : []}
                     max={1}
                     title="Imagem de fundo do Hero"
-                    description="Escolha uma foto da biblioteca ou envie uma nova sem sair desta tela."
+                    description="Escolha uma foto da biblioteca ou envie uma nova."
                     uploadCategory="Hero"
                   />
                 </div>
@@ -175,7 +140,7 @@ export default async function ContentPage({
 
               <div className="field-grid">
                 <label>
-                  Pré-título / eyebrow
+                  Pré-título
                   <input
                     name={`${section.key}_eyebrow`}
                     defaultValue={row?.eyebrow ?? ""}
@@ -215,7 +180,9 @@ export default async function ContentPage({
                         propertyId={membership.property_id}
                         fieldName={`experience_${index + 1}_media`}
                         initialLibrary={mediaLibrary}
-                        initialSelected={items[index]?.image ? [items[index].image] : []}
+                        initialSelected={
+                          items[index]?.image ? [items[index].image] : []
+                        }
                         max={1}
                         title="Foto da experiência"
                         description="Escolha uma imagem da biblioteca ou envie uma nova."
@@ -245,7 +212,7 @@ export default async function ContentPage({
             </section>
           );
         })}
-      </div>
+      </AdminTabs>
 
       <div className="sticky-save-bar">
         <span>As alterações entram no site assim que forem salvas.</span>
