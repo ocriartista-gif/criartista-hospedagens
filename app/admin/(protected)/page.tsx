@@ -2,7 +2,6 @@ import Link from "next/link";
 import { LeadPriorityBadge } from "@/components/admin/LeadPriorityBadge";
 import { StatCard } from "@/components/admin/StatCard";
 import { getAdminContext } from "@/lib/data/admin";
-import { roleLabels } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
 
@@ -47,9 +46,6 @@ export default async function AdminHome() {
         <div>
           <span className="eyebrow">Visão geral</span>
           <h1>O que precisa da sua atenção hoje.</h1>
-        </div>
-        <div className="admin-user">
-          {membership.display_name || membership.email || "Usuário"} · {roleLabels[membership.role] ?? membership.role}
         </div>
       </header>
 
