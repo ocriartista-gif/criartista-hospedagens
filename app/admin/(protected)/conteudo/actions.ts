@@ -74,6 +74,8 @@ export async function updateContentSections(formData: FormData) {
         items: [1, 2, 3].map((index) => ({
           title: text(formData, `experience_${index}_title`),
           description: text(formData, `experience_${index}_description`),
+          image:
+            selectedMedia(formData, `experience_${index}_media`)[0] ?? null,
         })),
       };
     }
