@@ -68,7 +68,7 @@ export default async function ContentPage({
   searchParams: Promise<{ saved?: string }>;
 }) {
   const { saved } = await searchParams;
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
 
   const [{ data: rows, error }, { data: library, error: libraryError }] =
     await Promise.all([
