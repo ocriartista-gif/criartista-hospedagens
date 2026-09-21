@@ -29,14 +29,22 @@ export default async function AccommodationPage({
       <SiteHeader property={property} />
       <section className="room-hero container">
         <div className="room-gallery">
-          <img
-            className="room-main-image"
-            src={accommodation.images[0]}
-            alt={accommodation.name}
-          />
-          {accommodation.images.slice(1).map((image) => (
-            <img key={image} src={image} alt="" />
-          ))}
+          {accommodation.images.length ? (
+            <>
+              <img
+                className="room-main-image"
+                src={accommodation.images[0]}
+                alt={accommodation.name}
+              />
+              {accommodation.images.slice(1).map((image) => (
+                <img key={image} src={image} alt="" />
+              ))}
+            </>
+          ) : (
+            <div className="public-image-placeholder room-main-image">
+              Foto em breve
+            </div>
+          )}
         </div>
         <div className="room-copy">
           <span className="eyebrow">Acomodação</span>
@@ -45,7 +53,9 @@ export default async function AccommodationPage({
           <div className="facts">
             <span>{accommodation.capacity} hóspedes</span>
             <span>{accommodation.sizeM2} m²</span>
-            <span>{accommodation.beds}</span>
+            {accommodation.beds && <span>{accommodation.beds}</span>}
+            <span>Check-in {property.checkInTime.slice(0, 5)}</span>
+            <span>Check-out {property.checkOutTime.slice(0, 5)}</span>
           </div>
           <h2>Comodidades</h2>
           <ul className="amenities">
