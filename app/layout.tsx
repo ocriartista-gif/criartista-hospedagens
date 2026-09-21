@@ -2,19 +2,41 @@ import type { Metadata } from "next";
 import { getPublicSiteData } from "@/lib/data/public";
 import "./globals.css";
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://criartista-hospedagens.vercel.app";
+
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const { property } = await getPublicSiteData();
+    const { property, content } = await getPublicSiteData();
+    const heroImage = content.hero?.image;
 
     return {
-      title: `${property.name} | Criartista Hospedagens`,
+      metadataBase: new URL(siteUrl),
+      title: {
+        default: `${property.name} | Hospedagem`,
+        template: `%s | ${property.name}`,
+      },
       description: property.description || property.tagline,
+      alternates: {
+        canonical: "/",
+      },
+      openGraph: {
+        type: "website",
+        locale: "pt_BR",
+        url: "/",
+        siteName: property.name,
+        title: property.name,
+        description: property.description || property.tagline,
+        images: heroImage ? [{ url: heroImage }] : undefined,
+      },
       icons: property.theme.faviconUrl
         ? { icon: property.theme.faviconUrl }
         : undefined,
     };
   } catch {
     return {
+      metadataBase: new URL(siteUrl),
       title: "Criartista Hospedagens",
       description: "Site de hospedagem e reserva direta.",
     };
