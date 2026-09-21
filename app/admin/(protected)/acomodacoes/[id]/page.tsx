@@ -11,7 +11,7 @@ export default async function EditAccommodationPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership } = await getAdminContext(["owner", "manager", "marketing", "technical_admin"]);
 
   const [{ data: accommodation, error }, { data: library, error: libraryError }] =
     await Promise.all([
