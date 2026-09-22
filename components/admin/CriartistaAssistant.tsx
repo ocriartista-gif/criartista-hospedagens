@@ -2,14 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import {
+  CRIARTISTA_HELP_CLEAR_EVENT,
+  CRIARTISTA_HELP_EVENT,
+  type CriartistaHelpMessage,
+} from "@/lib/admin-help";
 
-type HelpContext = {
-  eyebrow: string;
-  title: string;
-  body: string;
-  actions?: Array<{ href: string; label: string }>;
-};
+type HelpContext = CriartistaHelpMessage;
 
 const contexts: Array<{ match: (path: string) => boolean; help: HelpContext }> = [
   {
@@ -114,14 +114,49 @@ function contextFor(pathname: string) {
 
 export function CriartistaAssistant() {
   const pathname = usePathname();
-  const help = contextFor(pathname);
+  const contextualHelp = contextFor(pathname);
+  const [overrideHelp, setOverrideHelp] = useState<HelpContext | null>(null);
   const [open, setOpen] = useState(false);
+  const help = overrideHelp ?? contextualHelp;
+
+  useEffect(() => {
+    function handleHelp(event: Event) {
+      const detail = (event as CustomEvent<CriartistaHelpMessage>).detail;
+      if (!detail) return;
+
+      setOverrideHelp(detail);
+      setOpen(true);
+    }
+
+    function handleClear() {
+      setOverrideHelp(null);
+      setOpen(false);
+    }
+
+    window.addEventListener(CRIARTISTA_HELP_EVENT, handleHelp);
+    window.addEventListener(CRIARTISTA_HELP_CLEAR_EVENT, handleClear);
+
+    return () => {
+      window.removeEventListener(CRIARTISTA_HELP_EVENT, handleHelp);
+      window.removeEventListener(CRIARTISTA_HELP_CLEAR_EVENT, handleClear);
+    };
+  }, []);
+
+  useEffect(() => {
+    setOverrideHelp(null);
+    setOpen(false);
+  }, [pathname]);
+
+  function closeHelp() {
+    setOpen(false);
+    setOverrideHelp(null);
+  }
 
   return (
     <div className={`criartista-assistant ${open ? "open" : ""}`}>
       {open && (
         <aside
-          className="criartista-assistant-popover"
+          className={`criartista-assistant-popover tone-${help.tone ?? "default"}`}
           aria-label="Assistente Criartista"
         >
           <div className="criartista-assistant-popover-head">
@@ -139,7 +174,7 @@ export function CriartistaAssistant() {
             <button
               type="button"
               className="criartista-assistant-close"
-              onClick={() => setOpen(false)}
+              onClick={closeHelp}
               aria-label="Fechar ajuda"
             >
               ×
@@ -147,6 +182,14 @@ export function CriartistaAssistant() {
           </div>
 
           <p>{help.body}</p>
+
+          {help.details?.length ? (
+            <ul className="criartista-assistant-details">
+              {help.details.map((detail) => (
+                <li key={detail}>{detail}</li>
+              ))}
+            </ul>
+          ) : null}
 
           {help.actions?.length ? (
             <div className="criartista-assistant-actions">
@@ -169,7 +212,14 @@ export function CriartistaAssistant() {
       <button
         type="button"
         className="criartista-assistant-trigger"
-        onClick={() => setOpen((current) => !current)}
+        onClick={() => {
+          if (open) {
+            closeHelp();
+            return;
+          }
+
+          setOpen(true);
+        }}
         aria-expanded={open}
         aria-label={open ? "Fechar Assistente Criartista" : "Abrir Assistente Criartista"}
       >
