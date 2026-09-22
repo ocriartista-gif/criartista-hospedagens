@@ -1,6 +1,13 @@
 "use client";
 
-import { useMemo, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+  type FormEvent,
+} from "react";
 import {
   resetLastBrandIdentity,
   updateBrandIdentity,
@@ -10,6 +17,7 @@ import {
   MediaPicker,
   type MediaLibraryItem,
 } from "@/components/admin/MediaPicker";
+import { clearCriartistaHelp, showCriartistaHelp } from "@/lib/admin-help";
 import { createClient } from "@/lib/supabase/client";
 import {
   bestPaletteText,
@@ -129,6 +137,8 @@ export function BrandEditor({
     () => getThemeContrastIssues(values),
     [values]
   );
+  const contrastSignature = contrastIssues.join("|");
+  const previousContrastSignature = useRef(contrastSignature);
 
   const headerBackground = resolvePaletteColor(
     values,
@@ -167,6 +177,44 @@ export function BrandEditor({
     [values, headerBackground, headerText, ctaBackground, ctaText]
   );
 
+  function showContrastGuidance() {
+    showCriartistaHelp({
+      eyebrow: "Proteção de leitura",
+      title: "Essa combinação não pode ser salva",
+      body:
+        "O sistema bloqueou essa combinação para evitar textos ilegíveis ou botões sem destaque suficiente no site. Ajuste os pontos abaixo e tente novamente.",
+      details: contrastIssues,
+      tone: "warning",
+    });
+  }
+
+  useEffect(() => {
+    if (contrastSignature === previousContrastSignature.current) return;
+
+    const hadIssues = previousContrastSignature.current.length > 0;
+    previousContrastSignature.current = contrastSignature;
+
+    if (contrastIssues.length > 0) {
+      showContrastGuidance();
+      return;
+    }
+
+    if (hadIssues) {
+      clearCriartistaHelp();
+    }
+  }, [contrastSignature]);
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    const submitter = (event.nativeEvent as SubmitEvent)
+      .submitter as HTMLButtonElement | null;
+
+    if (submitter?.hasAttribute("formnovalidate")) return;
+    if (contrastIssues.length === 0) return;
+
+    event.preventDefault();
+    showContrastGuidance();
+  }
+
   function set<K extends keyof BrandValues>(key: K, value: BrandValues[K]) {
     setValues((current) => ({ ...current, [key]: value }));
   }
@@ -178,7 +226,11 @@ export function BrandEditor({
   }
 
   return (
-    <form action={updateBrandIdentity} className="brand-editor-form">
+    <form
+      action={updateBrandIdentity}
+      className="brand-editor-form"
+      onSubmit={handleSubmit}
+    >
       <div className="brand-editor-toolbar">
         <div>
           <strong>Proteção de contraste ativa</strong>
@@ -458,9 +510,11 @@ export function BrandEditor({
             <button
               className="button button-primary"
               type="submit"
-              disabled={contrastIssues.length > 0}
+              aria-disabled={contrastIssues.length > 0}
             >
-              Salvar identidade
+              {contrastIssues.length > 0
+                ? "Revisar antes de salvar"
+                : "Salvar identidade"}
             </button>
           </div>
         </section>
