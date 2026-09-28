@@ -10,5 +10,6 @@ export async function requestHost() {
 }
 
 export function isPlatformHost(host: string) {
-  return host === PLATFORM_DOMAIN || host === `www.${PLATFORM_DOMAIN}`;
+  return host === PLATFORM_DOMAIN || host === `www.${PLATFORM_DOMAIN}` ||
+    (process.env.VERCEL_ENV === "preview" && host.endsWith(".vercel.app"));
 }
