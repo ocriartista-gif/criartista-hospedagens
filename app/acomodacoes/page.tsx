@@ -3,10 +3,13 @@ import { AccommodationCard } from "@/components/site/AccommodationCard";
 import { SiteHeader } from "@/components/site/SiteHeader";
 import { getPublicAccommodations, getPublicSiteData } from "@/lib/data/public";
 import { themeStyle } from "@/lib/theme";
+import { isPlatformHost, requestHost } from "@/lib/property-host";
+import { notFound } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (isPlatformHost(await requestHost())) return { title: "Página não encontrada" };
   const { property, content } = await getPublicSiteData();
   const section = content.accommodations;
 
@@ -28,6 +31,7 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function AccommodationsPage() {
+  if (isPlatformHost(await requestHost())) notFound();
   const { property, content } = await getPublicSiteData();
   const accommodations = await getPublicAccommodations(property.id);
   const section = content.accommodations ?? {

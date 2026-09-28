@@ -8,6 +8,7 @@ import {
   getPublicSiteData,
 } from "@/lib/data/public";
 import { themeStyle } from "@/lib/theme";
+import { isPlatformHost, requestHost } from "@/lib/property-host";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }): Promise<Metadata> {
   const { slug } = await params;
+  if (isPlatformHost(await requestHost())) return { title: "Página não encontrada" };
   const { property } = await getPublicSiteData();
   const accommodation = await getPublicAccommodationBySlug(property.id, slug);
 
@@ -51,6 +53,7 @@ export default async function AccommodationPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  if (isPlatformHost(await requestHost())) notFound();
   const { property, content } = await getPublicSiteData();
   const [accommodation, accommodations] = await Promise.all([
     getPublicAccommodationBySlug(property.id, slug),

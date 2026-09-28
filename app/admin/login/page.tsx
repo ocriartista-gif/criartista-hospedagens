@@ -1,5 +1,6 @@
 import { PasswordField } from "./PasswordField";
 import { login } from "./actions";
+import Link from "next/link";
 
 export default async function AdminLoginPage({
   searchParams,
@@ -64,6 +65,7 @@ export default async function AdminLoginPage({
                 Entrar
               </button>
             </form>
+            <Link className="criartista-login-back" href="/admin/esqueci-senha">Esqueci minha senha</Link>
 
             <a className="criartista-login-back" href="/">
               ← Voltar ao site

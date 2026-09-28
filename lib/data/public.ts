@@ -1,6 +1,7 @@
 import { createPublicClient } from "@/lib/supabase/public";
 import type { Accommodation, Property, PropertyTheme, Review } from "@/types";
 import type { Tables } from "@/types/database";
+import { requestHost } from "@/lib/property-host";
 
 type ContentRow = Tables<"content_sections">;
 type SocialRow = Tables<"social_links">;
@@ -121,19 +122,39 @@ function imageUrl(path: string) {
 }
 
 export async function getPublicSiteData(
-  slug = DEFAULT_PROPERTY_SLUG
+  slug?: string
 ): Promise<PublicSiteData> {
   const supabase = createPublicClient();
 
-  const { data: propertyRow, error: propertyError } = await supabase
+  // In production the Host must match a verified domain. A slug is only a
+  // local development convenience and cannot select another tenant in production.
+  let propertyId: string | undefined;
+  if (process.env.NODE_ENV === "production") {
+    const host = await requestHost();
+    if (!host) throw new Error("Unknown property domain.");
+    const { data: domain } = await supabase.from("property_domains")
+      .select("property_id").eq("domain", host).eq("status", "verified")
+      .eq("verification_status", "verified").maybeSingle();
+    if (!domain) throw new Error("Unknown property domain.");
+    propertyId = domain.property_id;
+  } else {
+    const host = await requestHost();
+    const { data: domain } = await supabase.from("property_domains")
+      .select("property_id").eq("domain", host).eq("status", "verified")
+      .eq("verification_status", "verified").maybeSingle();
+    propertyId = domain?.property_id;
+    slug = slug ?? DEFAULT_PROPERTY_SLUG;
+  }
+
+  let propertyQuery = supabase
     .from("properties")
     .select("*")
-    .eq("slug", slug)
-    .eq("status", "active")
-    .single();
+    .eq("status", "active");
+  propertyQuery = propertyId ? propertyQuery.eq("id", propertyId) : propertyQuery.eq("slug", slug!);
+  const { data: propertyRow, error: propertyError } = await propertyQuery.single();
 
   if (propertyError || !propertyRow) {
-    throw new Error(`Property "${slug}" not found or unavailable.`);
+    throw new Error("Property not found or unavailable.");
   }
 
   const [{ data: theme }, { data: content }, { data: social }] = await Promise.all([

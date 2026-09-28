@@ -454,6 +454,18 @@ export type Database = {
         }
         Relationships: []
       }
+      property_domains: {
+        Row: { id: string; property_id: string; domain: string; type: string; is_primary: boolean; status: string; verification_status: string; created_at: string; verified_at: string | null }
+        Insert: { id?: string; property_id: string; domain: string; type: string; is_primary?: boolean; status?: string; verification_status?: string; created_at?: string; verified_at?: string | null }
+        Update: { id?: string; property_id?: string; domain?: string; type?: string; is_primary?: boolean; status?: string; verification_status?: string; created_at?: string; verified_at?: string | null }
+        Relationships: [{ foreignKeyName: "property_domains_property_id_fkey"; columns: ["property_id"]; isOneToOne: false; referencedRelation: "properties"; referencedColumns: ["id"] }]
+      }
+      profiles: {
+        Row: { user_id: string; display_name: string; phone: string | null; avatar_path: string | null; updated_at: string }
+        Insert: { user_id: string; display_name?: string; phone?: string | null; avatar_path?: string | null; updated_at?: string }
+        Update: { user_id?: string; display_name?: string; phone?: string | null; avatar_path?: string | null; updated_at?: string }
+        Relationships: []
+      }
       property_members: {
         Row: {
           created_at: string
