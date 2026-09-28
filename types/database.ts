@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      checkout_intents: {
+        Row: { id: string; owner_id: string; property_name: string; amount: number; currency: string; provider_subscription_id: string | null; checkout_url: string | null; status: string; created_at: string }
+        Insert: { id?: string; owner_id: string; property_name: string; amount: number; currency?: string; provider_subscription_id?: string | null; checkout_url?: string | null; status?: string; created_at?: string }
+        Update: { id?: string; owner_id?: string; property_name?: string; amount?: number; currency?: string; provider_subscription_id?: string | null; checkout_url?: string | null; status?: string; created_at?: string }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: { id: string; property_id: string | null; owner_id: string; checkout_intent_id: string; provider: string; external_subscription_id: string; status: string; plan_code: string; amount: number; currency: string; current_period_start: string | null; current_period_end: string | null; cancel_at_period_end: boolean; created_at: string; updated_at: string }
+        Insert: { id?: string; property_id?: string | null; owner_id: string; checkout_intent_id: string; provider?: string; external_subscription_id: string; status?: string; plan_code?: string; amount: number; currency?: string; current_period_start?: string | null; current_period_end?: string | null; cancel_at_period_end?: boolean; created_at?: string; updated_at?: string }
+        Update: { id?: string; property_id?: string | null; owner_id?: string; checkout_intent_id?: string; provider?: string; external_subscription_id?: string; status?: string; plan_code?: string; amount?: number; currency?: string; current_period_start?: string | null; current_period_end?: string | null; cancel_at_period_end?: boolean; created_at?: string; updated_at?: string }
+        Relationships: []
+      }
+      billing_webhook_events: {
+        Row: { id: string; provider: string; external_event_id: string; resource_id: string; event_type: string; status: string; received_at: string; processed_at: string | null }
+        Insert: { id?: string; provider: string; external_event_id: string; resource_id: string; event_type: string; status?: string; received_at?: string; processed_at?: string | null }
+        Update: { id?: string; provider?: string; external_event_id?: string; resource_id?: string; event_type?: string; status?: string; received_at?: string; processed_at?: string | null }
+        Relationships: []
+      }
+      provisioning_requests: {
+        Row: { id: string; source: string; source_id: string; property_id: string | null; owner_id: string; created_at: string; completed_at: string | null }
+        Insert: { id?: string; source: string; source_id: string; property_id?: string | null; owner_id: string; created_at?: string; completed_at?: string | null }
+        Update: { id?: string; source?: string; source_id?: string; property_id?: string | null; owner_id?: string; created_at?: string; completed_at?: string | null }
+        Relationships: []
+      }
+      provisioning_events: {
+        Row: { id: number; request_id: string; event_type: string; created_at: string }
+        Insert: { id?: number; request_id: string; event_type: string; created_at?: string }
+        Update: { id?: number; request_id?: string; event_type?: string; created_at?: string }
+        Relationships: []
+      }
       accommodation_images: {
         Row: {
           accommodation_id: string
@@ -454,6 +484,24 @@ export type Database = {
         }
         Relationships: []
       }
+      onboarding_state: {
+        Row: { property_id: string; current_step: string; completed_steps: string[]; updated_at: string }
+        Insert: { property_id: string; current_step?: string; completed_steps?: string[]; updated_at?: string }
+        Update: { property_id?: string; current_step?: string; completed_steps?: string[]; updated_at?: string }
+        Relationships: [{ foreignKeyName: "onboarding_state_property_id_fkey"; columns: ["property_id"]; isOneToOne: true; referencedRelation: "properties"; referencedColumns: ["id"] }]
+      }
+      property_domains: {
+        Row: { id: string; property_id: string; domain: string; type: string; is_primary: boolean; status: string; verification_status: string; verification_records: Json; created_at: string; verified_at: string | null }
+        Insert: { id?: string; property_id: string; domain: string; type: string; is_primary?: boolean; status?: string; verification_status?: string; verification_records?: Json; created_at?: string; verified_at?: string | null }
+        Update: { id?: string; property_id?: string; domain?: string; type?: string; is_primary?: boolean; status?: string; verification_status?: string; verification_records?: Json; created_at?: string; verified_at?: string | null }
+        Relationships: [{ foreignKeyName: "property_domains_property_id_fkey"; columns: ["property_id"]; isOneToOne: false; referencedRelation: "properties"; referencedColumns: ["id"] }]
+      }
+      profiles: {
+        Row: { user_id: string; display_name: string; phone: string | null; avatar_path: string | null; updated_at: string }
+        Insert: { user_id: string; display_name?: string; phone?: string | null; avatar_path?: string | null; updated_at?: string }
+        Update: { user_id?: string; display_name?: string; phone?: string | null; avatar_path?: string | null; updated_at?: string }
+        Relationships: []
+      }
       property_members: {
         Row: {
           created_at: string
@@ -749,7 +797,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      provision_property: {
+        Args: { p_source: string; p_source_id: string; p_owner_id: string; p_property_name: string }
+        Returns: string
+      }
+      set_primary_property_domain: {
+        Args: { p_property_id: string; p_domain_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never

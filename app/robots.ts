@@ -1,10 +1,8 @@
 import type { MetadataRoute } from "next";
+import { requestHost } from "@/lib/property-host";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://criartista-hospedagens.vercel.app";
-
-export default function robots(): MetadataRoute.Robots {
+export default async function robots(): Promise<MetadataRoute.Robots> {
+  const siteUrl = `https://${await requestHost()}`;
   return {
     rules: {
       userAgent: "*",

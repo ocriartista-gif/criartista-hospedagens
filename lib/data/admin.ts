@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { cookies } from "next/headers";
 import type { PropertyTheme } from "@/types";
 
 function assetUrl(path: string | null) {
@@ -37,16 +38,18 @@ export async function getAdminContext(allowedRoles?: readonly string[]) {
     throw new Error("Admin session not found.");
   }
 
-  const { data: membership, error: membershipError } = await supabase
+  const { data: memberships, error: membershipError } = await supabase
     .from("property_members")
     .select("property_id, user_id, role, display_name, email")
     .eq("user_id", userId)
-    .limit(1)
-    .single();
+    .order("created_at", { ascending: true });
 
-  if (membershipError || !membership) {
+  if (membershipError || !memberships?.length) {
     throw new Error("Admin user has no property membership.");
   }
+
+  const selectedId = (await cookies()).get("criartista_active_property")?.value;
+  const membership = memberships.find((item) => item.property_id === selectedId) ?? memberships[0];
 
   if (allowedRoles && !allowedRoles.includes(membership.role)) {
     redirect("/admin");
@@ -93,5 +96,5 @@ export async function getAdminContext(allowedRoles?: readonly string[]) {
       }
     : fallbackTheme;
 
-  return { supabase, membership, property, theme };
+  return { supabase, membership, memberships, property, theme, userId };
 }

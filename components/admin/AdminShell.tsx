@@ -4,6 +4,7 @@ import { AdminIcon, AdminNav, type AdminIconName } from "@/components/admin/Admi
 import { CriartistaAssistant } from "@/components/admin/CriartistaAssistant";
 import { getAdminContext } from "@/lib/data/admin";
 import { isDarkColor, themeStyle } from "@/lib/theme";
+import { selectProperty } from "@/app/admin/(protected)/trocar-hospedagem/actions";
 
 type NavItem = {
   href: string;
@@ -62,6 +63,12 @@ const items: NavItem[] = [
     roles: ["owner", "technical_admin"],
   },
   {
+    href: "/admin/dominio",
+    label: "Domínio",
+    icon: "external",
+    roles: ["owner"],
+  },
+  {
     href: "/admin/usuarios",
     label: "Usuários",
     icon: "users",
@@ -84,13 +91,24 @@ const roleLabels: Record<string, string> = {
 };
 
 export async function AdminShell({ children }: { children: React.ReactNode }) {
-  const { property, theme, membership } = await getAdminContext();
+  const { property, theme, membership, memberships, supabase, userId } = await getAdminContext();
+  const { data: profile } = await supabase.from("profiles").select("display_name, avatar_path").eq("user_id", userId).maybeSingle();
+  const { data: availableProperties } = memberships.length > 1
+    ? await supabase.from("properties").select("id, name").in("id", memberships.map((item) => item.property_id))
+    : { data: [] as Array<{ id: string; name: string }> };
+  const { data: publicDomain } = await supabase.from("property_domains")
+    .select("domain").eq("property_id", property.id).eq("status", "verified")
+    .eq("verification_status", "verified").order("is_primary", { ascending: false }).limit(1).maybeSingle();
+  const siteHref = publicDomain ? `https://${publicDomain.domain}` : "/";
   const visibleItems = items
     .filter((item) => item.roles.includes(membership.role))
     .map(({ href, label, icon }) => ({ href, label, icon }));
+  if (property.status === "draft" && membership.role === "owner") {
+    visibleItems.unshift({ href: "/admin/onboarding", label: "Primeiros passos", icon: "overview" });
+  }
 
   const displayName =
-    membership.display_name?.trim() ||
+    profile?.display_name?.trim() || membership.display_name?.trim() ||
     membership.email?.split("@")[0] ||
     "Usuário";
 
@@ -119,7 +137,7 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
         <AdminNav items={visibleItems} />
 
         <div className="admin-sidebar-footer">
-          <Link className="admin-view-site" href="/" target="_blank">
+          <Link className="admin-view-site" href={siteHref} target="_blank">
             <AdminIcon name="external" />
             <span>Ver site</span>
           </Link>
@@ -135,25 +153,30 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
 
       <div className="admin-workspace">
         <header className="admin-topbar">
-          <div className="admin-topbar-property">
-            <span>Hospedagem ativa</span>
-            <strong>{property.name}</strong>
-          </div>
+          {memberships.length > 1 ? (
+            <form action={selectProperty} className="admin-property-switcher">
+              <label htmlFor="active-property">Hospedagem ativa</label>
+              <select id="active-property" name="propertyId" defaultValue={property.id}>
+                {memberships.map((item) => <option key={item.property_id} value={item.property_id}>{availableProperties?.find((entry) => entry.id === item.property_id)?.name ?? `Hospedagem ${item.property_id.slice(0, 8)}`}</option>)}
+              </select>
+              <button type="submit">Trocar</button>
+            </form>
+          ) : <div className="admin-topbar-property"><span>Hospedagem ativa</span><strong>{property.name}</strong></div>}
 
           <div className="admin-topbar-actions">
-            <Link className="admin-topbar-site" href="/" target="_blank">
+            <Link className="admin-topbar-site" href={siteHref} target="_blank">
               Ver site ↗
             </Link>
 
-            <div className="admin-profile-chip">
+            <Link className="admin-profile-chip" href="/admin/perfil" aria-label="Editar meu perfil">
               <span className="admin-profile-avatar" aria-hidden="true">
-                {displayName.slice(0, 1).toUpperCase()}
+                {profile?.avatar_path ? <img src={`${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/profile-avatars/${profile.avatar_path}`} alt="" /> : displayName.slice(0, 1).toUpperCase()}
               </span>
               <span className="admin-profile-copy">
                 <strong>{displayName}</strong>
                 <small>{roleLabels[membership.role] ?? membership.role}</small>
               </span>
-            </div>
+            </Link>
           </div>
         </header>
 

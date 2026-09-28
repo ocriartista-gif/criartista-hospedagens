@@ -7,10 +7,13 @@ import {
   getPublicSiteData,
 } from "@/lib/data/public";
 import { themeStyle } from "@/lib/theme";
+import { isPlatformHost, requestHost } from "@/lib/property-host";
+import { PlatformLanding } from "@/components/site/PlatformLanding";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
+  if (isPlatformHost(await requestHost())) return <PlatformLanding />;
   const { property, content, social } = await getPublicSiteData();
   const [accommodations, reviews] = await Promise.all([
     getPublicAccommodations(property.id),
@@ -65,9 +68,7 @@ export default async function Home() {
     description: "",
   };
 
-  const siteUrl =
-    process.env.NEXT_PUBLIC_SITE_URL ??
-    "https://criartista-hospedagens.vercel.app";
+  const siteUrl = `https://${await requestHost()}`;
   const lodgingJsonLd = {
     "@context": "https://schema.org",
     "@type": "LodgingBusiness",

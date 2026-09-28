@@ -1,18 +1,25 @@
 import type { Metadata } from "next";
 import { getPublicSiteData } from "@/lib/data/public";
 import "./globals.css";
+import { isPlatformHost, requestHost } from "@/lib/property-host";
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL ??
   "https://criartista-hospedagens.vercel.app";
 
 export async function generateMetadata(): Promise<Metadata> {
+  if (isPlatformHost(await requestHost())) return {
+    metadataBase: new URL(`https://${process.env.NEXT_PUBLIC_PLATFORM_DOMAIN ?? "hospedagens.ocriartista.site"}`),
+    title: "O Criartista Hospedagens | Sites para pousadas e hotéis",
+    description: "Site e painel de gestão para pousadas, hotéis e chalés com contato direto com seus hóspedes.",
+  };
   try {
     const { property, content } = await getPublicSiteData();
+    const host = await requestHost();
     const heroImage = content.hero?.image;
 
     return {
-      metadataBase: new URL(siteUrl),
+      metadataBase: new URL(`https://${host}`),
       title: {
         default: `${property.name} | Hospedagem`,
         template: `%s | ${property.name}`,

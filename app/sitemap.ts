@@ -3,14 +3,14 @@ import {
   getPublicAccommodations,
   getPublicSiteData,
 } from "@/lib/data/public";
+import { isPlatformHost, requestHost } from "@/lib/property-host";
 
 export const dynamic = "force-dynamic";
 
-const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL ??
-  "https://criartista-hospedagens.vercel.app";
-
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const host = await requestHost();
+  const siteUrl = `https://${host}`;
+  if (isPlatformHost(host)) return [{ url: siteUrl, lastModified: new Date() }];
   const { property } = await getPublicSiteData();
   const accommodations = await getPublicAccommodations(property.id);
 
