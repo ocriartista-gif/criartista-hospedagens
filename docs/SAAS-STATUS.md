@@ -30,7 +30,7 @@ Revisão estática: todas as novas tabelas públicas usam RLS. Perfis são limit
 - `npx tsc --noEmit`: passou.
 - `npm run build`: passou.
 - `npm test`: assinatura válida, adulteração e replay cobertos; passou.
-- Preview Vercel: confirmar o novo deploy após o push desta etapa.
+- Preview Vercel do commit `6cefd465`: build/deploy em estado `READY`. O fetch de `/` e `/contratar` respondeu `302` para o SSO da Vercel; o smoke test HTTP de renderização ficou bloqueado pela proteção do preview. A ferramenta de logs de build retornou indisponível, portanto os logs remotos não foram inspecionados.
 
 ## Bloqueios antes da venda
 
