@@ -6,7 +6,10 @@ create table public.profiles (
   avatar_path text,
   updated_at timestamptz not null default now(),
   constraint profiles_display_name_length check (char_length(display_name) <= 120),
-  constraint profiles_phone_length check (char_length(phone) <= 30)
+  constraint profiles_phone_length check (char_length(phone) <= 30),
+  constraint profiles_avatar_owner check (
+    avatar_path is null or split_part(avatar_path, '/', 1) = user_id::text
+  )
 );
 
 insert into public.profiles (user_id, display_name)

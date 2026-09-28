@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function GET(request: NextRequest) {
   const code = request.nextUrl.searchParams.get("code");
   const next = request.nextUrl.searchParams.get("next");
-  const destination = next === "/admin/redefinir-senha" ? next : "/admin";
+  const destination = ["/admin/redefinir-senha", "/contratar/checkout"].includes(next ?? "") ? next! : "/admin";
   if (code) {
     const supabase = await createClient();
     const { error } = await supabase.auth.exchangeCodeForSession(code);

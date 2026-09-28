@@ -2,11 +2,13 @@ import Link from "next/link";
 import { LeadPriorityBadge } from "@/components/admin/LeadPriorityBadge";
 import { StatCard } from "@/components/admin/StatCard";
 import { getAdminContext } from "@/lib/data/admin";
+import { redirect } from "next/navigation";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminHome() {
-  const { supabase, membership } = await getAdminContext();
+  const { supabase, membership, property } = await getAdminContext();
+  if (property.status === "draft" && membership.role === "owner") redirect("/admin/onboarding");
 
   const [{ data: queue }, { data: accommodations }] = await Promise.all([
     supabase

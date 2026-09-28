@@ -63,6 +63,12 @@ const items: NavItem[] = [
     roles: ["owner", "technical_admin"],
   },
   {
+    href: "/admin/dominio",
+    label: "Domínio",
+    icon: "external",
+    roles: ["owner"],
+  },
+  {
     href: "/admin/usuarios",
     label: "Usuários",
     icon: "users",
@@ -97,6 +103,9 @@ export async function AdminShell({ children }: { children: React.ReactNode }) {
   const visibleItems = items
     .filter((item) => item.roles.includes(membership.role))
     .map(({ href, label, icon }) => ({ href, label, icon }));
+  if (property.status === "draft" && membership.role === "owner") {
+    visibleItems.unshift({ href: "/admin/onboarding", label: "Primeiros passos", icon: "overview" });
+  }
 
   const displayName =
     profile?.display_name?.trim() || membership.display_name?.trim() ||

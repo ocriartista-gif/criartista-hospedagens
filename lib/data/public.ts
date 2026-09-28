@@ -2,6 +2,7 @@ import { createPublicClient } from "@/lib/supabase/public";
 import type { Accommodation, Property, PropertyTheme, Review } from "@/types";
 import type { Tables } from "@/types/database";
 import { requestHost } from "@/lib/property-host";
+import { notFound } from "next/navigation";
 
 type ContentRow = Tables<"content_sections">;
 type SocialRow = Tables<"social_links">;
@@ -131,11 +132,11 @@ export async function getPublicSiteData(
   let propertyId: string | undefined;
   if (process.env.NODE_ENV === "production") {
     const host = await requestHost();
-    if (!host) throw new Error("Unknown property domain.");
+    if (!host) notFound();
     const { data: domain } = await supabase.from("property_domains")
       .select("property_id").eq("domain", host).eq("status", "verified")
       .eq("verification_status", "verified").maybeSingle();
-    if (!domain) throw new Error("Unknown property domain.");
+    if (!domain) notFound();
     propertyId = domain.property_id;
   } else {
     const host = await requestHost();
@@ -154,7 +155,7 @@ export async function getPublicSiteData(
   const { data: propertyRow, error: propertyError } = await propertyQuery.single();
 
   if (propertyError || !propertyRow) {
-    throw new Error("Property not found or unavailable.");
+    notFound();
   }
 
   const [{ data: theme }, { data: content }, { data: social }] = await Promise.all([

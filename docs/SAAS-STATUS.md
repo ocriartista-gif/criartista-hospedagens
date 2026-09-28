@@ -1,30 +1,46 @@
-# Evolução SaaS: estado desta branch
+# Evolução SaaS: estado da PR #1
 
-Esta branch inicia a transição da aplicação existente. **Ainda não constitui a versão 2.0 nem um produto pronto para venda automática.**
+**Esta PR continua em rascunho. Não aplicar na produção ou integrar à `main` antes da validação remota.**
 
-## Implementado localmente
+## Ponto de retomada
 
-- Perfil global de usuário, nome, telefone, avatar no Storage, alteração de senha e solicitação de troca de e-mail.
-- Recuperação de senha com callback PKCE e tratamento de link inválido.
-- Seletor de hospedagem para usuários com mais de uma associação. O servidor verifica a membership antes de gravar o cookie e cada operação continua usando a role da hospedagem ativa.
-- Resolução do site público por Host e domínio verificado; a hospedagem é sempre buscada pelo `property_id` resolvido. O slug padrão fica restrito ao desenvolvimento.
-- Página central da plataforma, sitemap/robots por host e links do painel para o domínio da hospedagem.
+O código anterior da PR oferece perfil global, avatar, recuperação de senha, troca de hospedagem e resolução do site por domínio verificado. Esta etapa acrescentou o núcleo self-service, mas a conexão Supabase ainda responde “You do not have permission to perform this action” para tabelas, migrations e advisors. Apenas a lista de projetos está acessível. Portanto, não foi possível inspecionar o banco remoto, aplicar migrations, gerar tipos a partir do banco nem testar RLS, perfil ou isolamento contra dados reais. Os tipos novos foram editados localmente e **precisam ser regenerados após a aplicação das migrations**.
 
-## Migrations pendentes de aplicação
+## Implementado nesta etapa
 
-- `20260928210000_add_user_profiles.sql`: `profiles` com RLS, backfill e bucket `profile-avatars`.
-- `20260928211000_property_domains.sql`: `property_domains` com RLS, índice único e subdomínios iniciais.
+- Provisioning transacional via RPC restrita a `service_role`. Um ID externo único impede duplicação em entregas repetidas do webhook. Cria propriedade em `draft`, owner, profile, tema, seções de conteúdo, redes, integrações desativadas, onboarding, subdomínio e log.
+- Regra de publicação no banco: um proprietário pode promover `draft → active` somente com nome, WhatsApp, endereço, título e imagem hero, e pelo menos uma acomodação publicada com imagem. Sites incompletos não entram nas políticas públicas existentes.
+- Onboarding em `/admin/onboarding` com progresso baseado nos dados persistidos, edição inicial de contato/redes, links para os editores aprovados, revisão, publicação e ajuda contextual.
+- Conta para contratação, checkout de assinatura única do Mercado Pago e retorno pendente. O preço fica apenas no ambiente do servidor.
+- Webhook com assinatura HMAC, janela antirreplay, consulta do pagamento e assinatura diretamente no Mercado Pago, conferência de vínculo e valor, registro de eventos e provisioning somente quando a fatura informa pagamento aprovado.
+- Domínio próprio no admin: inclusão pela API da Vercel, leitura de registros de verificação, nova verificação e escolha transacional do domínio principal. O domínio só fica público quando o projeto e a configuração DNS forem confirmados.
+- Landing central com oferta única, recursos e fluxo de contratação, sem preços ou depoimentos inventados.
 
-Aplicar e verificar essas migrations em ambiente de teste antes de executar a aplicação desta branch. As consultas ao projeto Supabase foram recusadas pela conexão disponível nesta sessão, portanto **não foram aplicadas nem verificadas no banco remoto**. A configuração de wildcard DNS e o domínio na Vercel também precisam ser verificados antes do teste multi-tenant público.
+## Migrations em ordem, ainda não aplicadas
 
-## Bloqueios para “pagou e usou”
+1. `20260928210000_add_user_profiles.sql`
+2. `20260928211000_property_domains.sql`
+3. `20260928213000_self_service_core.sql`
+4. `20260928214000_subscription_billing.sql`
 
-- Não há checkout, assinatura nem webhook de pagamento.
-- Não há provisioning transacional/idempotente nem onboarding self-service.
-- Domínios próprios ainda não são adicionados/verificados via API da Vercel.
-- As integrações armazenadas (analytics, consentimento, Sheets, motor externo) ainda exigem implementação e testes ponta a ponta.
-- O backoffice da plataforma e o ciclo de cobrança/suspensão ainda não existem.
-- Os textos legais e a decisão comercial de preço/provedor precisam de dados reais.
-- Não há teste E2E com Supabase e Vercel disponíveis nesta sessão.
+Revisão estática: todas as novas tabelas públicas usam RLS. Perfis são limitados ao próprio usuário; domínios públicos precisam de status verificado e hospedagem ativa; mutações de domínio, billing e provisioning ficam no servidor com `service_role`. A RPC de provisioning usa `SECURITY INVOKER`, permissões restritas e transação única. **A revisão estática não substitui a execução dos advisors nem os testes de permissão no banco.**
 
-Não integrar à `main` nem tratar a landing como fluxo de contratação até que esses itens estejam implementados e verificados.
+## Verificação realizada
+
+- `npx tsc --noEmit`: passou.
+- `npm run build`: passou.
+- `npm test`: assinatura válida, adulteração e replay cobertos; passou.
+- Preview Vercel: confirmar o novo deploy após o push desta etapa.
+
+## Bloqueios antes da venda
+
+- Supabase remoto: aplicar migrations, regenerar tipos, executar advisors e testar owner A/B, avatar, recuperação, idempotência e publicação.
+- Configurar `MERCADO_PAGO_ACCESS_TOKEN`, `MERCADO_PAGO_WEBHOOK_SECRET`, valor comercial e URL pública. Testar assinatura e primeira fatura em ambiente de teste do provedor. O fluxo exige criação/validação da conta antes do pagamento.
+- Configurar `SUPABASE_SERVICE_ROLE_KEY` apenas no servidor.
+- Configurar `VERCEL_TOKEN`, `VERCEL_PROJECT_ID`, `VERCEL_TEAM_ID`, wildcard DNS/certificado e domínio central.
+- Adicionar URLs de confirmação da conta e recuperação à lista de redirects do Supabase Auth.
+- Integrações GA4, Pixel, GTM, consentimento, Sheets e motores externos ainda são configurações salvas, sem execução completa.
+- Falta rotina operacional para falhas de cobrança, tolerância, suspensão, estornos e reconciliação do webhook; o site não é derrubado automaticamente.
+- Faltam testes E2E com Supabase e Mercado Pago, textos legais reais e validação visual em mobile do admin e da landing.
+
+Consulte `docs/ENVIRONMENT-SAAS.md` para as variáveis e a sequência de ativação. **Não publicar a landing de contratação em produção enquanto os bloqueios acima persistirem.**

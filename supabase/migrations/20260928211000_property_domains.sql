@@ -6,6 +6,7 @@ create table public.property_domains (
   is_primary boolean not null default false,
   status text not null default 'pending' check (status in ('pending', 'verified', 'disabled')),
   verification_status text not null default 'pending',
+  verification_records jsonb not null default '[]'::jsonb,
   created_at timestamptz not null default now(),
   verified_at timestamptz,
   constraint property_domains_lowercase check (domain = lower(domain)),
